@@ -1,138 +1,89 @@
-# 🛠️ Code Forge AI
+<div align="center">
 
-<p align="center">
-  <strong>AI-Powered Programming Mentor & Career Development Assistant</strong>
-</p>
+# Code Forge AI
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Java-21-orange?logo=openjdk" alt="Java 21"/>
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.5.9-brightgreen?logo=springboot" alt="Spring Boot 3.5.9"/>
-  <img src="https://img.shields.io/badge/LangChain4j-1.1.0-blue" alt="LangChain4j"/>
-  <img src="https://img.shields.io/badge/Vue-3.4-42b883?logo=vuedotjs" alt="Vue 3"/>
-  <img src="https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite" alt="Vite 5"/>
-</p>
+### AI-Powered Software Engineering Coach
 
----
+An intelligent conversational platform that combines LLM reasoning, retrieval-augmented generation, and real-time tool execution to accelerate developer growth — from first commit to signed offer letter.
 
-## 📖 About
+[![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5.9-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-2B6CB0)](https://docs.langchain4j.dev/)
+[![Vue 3](https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
-**Code Forge AI** is a full-stack AI chat application built with LangChain4j + Spring Boot + Vue 3, designed for **developers** and **job seekers**:
+[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Contributing](#-contributing)
 
-- 🧑‍💻 **Programming Coaching** — Code writing, debugging, and technical solution design
-- 🗺️ **Learning Roadmaps** — Multi-track study paths (backend, data, security, etc.)
-- 💼 **End-to-End Job Search Guidance** — Resume optimization, portfolio packaging, interview prep, offer negotiation
-- 🎯 **Real-Time Interview Question Search** — Integrated web scraping tool to fetch frequently asked interview questions
-- 🌐 **Web Search** — Live internet search via MCP protocol with Zhipu BigModel Web Search
+</div>
 
 ---
 
-## ✨ Key Features
+## Why Code Forge AI?
 
-| Feature | Description |
-|---------|-------------|
-| **Streaming Chat (SSE)** | Real-time typewriter-effect responses via Server-Sent Events |
-| **RAG Knowledge Augmentation** | Loads local knowledge base documents (study routes, interview Q&A, job-seeking guides) to enhance answer quality |
-| **MCP Tool Invocation** | Connects to Zhipu web search via Model Context Protocol for real-time information |
-| **Custom Tools** | Built-in interview question scraper that fetches relevant questions from mianshiya.com |
-| **Input Safety Guardrails** | InputGuardrail-based sensitive word filtering to ensure safe conversations |
-| **Chat Memory** | Multi-turn conversation context memory, isolated by `memoryId` |
-| **Chat Model Listener** | Full request/response/error logging pipeline for easy debugging |
-| **Responsive Frontend** | Vue 3 + Composition API, optimized for both desktop and mobile |
+Most AI coding assistants stop at autocomplete. **Code Forge AI** goes further — it acts as an **engineering mentor** that understands your career context:
+
+- **Write & debug code** with structured problem-solving and test-driven guidance
+- **Plan your learning path** with milestone-driven roadmaps tailored to your target role
+- **Prepare for interviews** with real questions pulled from live sources, not static datasets
+- **Navigate your job search** end-to-end: résumé, portfolio, networking, negotiation
+
+All of this is backed by a curated knowledge base, real-time web search, and purpose-built tooling — not just a raw LLM prompt.
+
+---
+
+## ✨ Features
+
+| | Feature | Details |
+|---|---------|---------|
+| ⚡ | **Streaming Responses** | Token-by-token delivery via SSE for a natural, real-time conversation experience |
+| 📚 | **RAG-Enhanced Answers** | Domain-specific knowledge base (study routes, interview banks, career playbooks) automatically retrieved and injected into context |
+| 🔌 | **MCP Protocol Integration** | Live web search via Model Context Protocol — the AI can access up-to-date information beyond its training cutoff |
+| 🛠️ | **Extensible Tool System** | Built-in interview question scraper; easily add new tools via LangChain4j's `@Tool` annotation |
+| 🛡️ | **Input Guardrails** | Pluggable safety layer that intercepts and blocks unsafe or abusive input before it reaches the model |
+| 🧠 | **Session-Isolated Memory** | Each conversation maintains independent context history with a configurable sliding window |
+| 📊 | **Observability** | Full request/response/error lifecycle logging via `ChatModelListener` for debugging and monitoring |
+| 📱 | **Responsive UI** | Clean, mobile-friendly chat interface built with Vue 3 Composition API |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend (Vue 3 + Vite)               │
-│         Port 5173  →  Proxy /api → Backend              │
-└────────────────────────┬────────────────────────────────┘
-                         │ SSE (Server-Sent Events)
-┌────────────────────────▼────────────────────────────────┐
-│               Backend (Spring Boot 3.5.9)                │
-│                     Port 8081                            │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │              AiController (REST API)              │   │
-│  │                GET /api/ai/chat                   │   │
-│  └──────────────────────┬───────────────────────────┘   │
-│                         │                                │
-│  ┌──────────────────────▼───────────────────────────┐   │
-│  │          CodeForgeAiService (AI Services)         │   │
-│  │  ┌─────────┐ ┌──────┐ ┌──────┐ ┌─────────────┐  │   │
-│  │  │Guardrail│ │ RAG  │ │Tools │ │  MCP Client  │  │   │
-│  │  └─────────┘ └──────┘ └──────┘ └─────────────┘  │   │
-│  └──────────────────────┬───────────────────────────┘   │
-│                         │                                │
-│  ┌──────────────────────▼───────────────────────────┐   │
-│  │         Qwen Model (DashScope API)                │   │
-│  │      Chat Model  /  Streaming  /  Embedding       │   │
-│  └──────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 📂 Project Structure
-
-```
-code-forge-ai/
-├── pom.xml                          # Maven configuration
-├── src/main/
-│   ├── java/com/workspace/codeforgeai/
-│   │   ├── CodeForgeAiApplication.java       # Spring Boot entry point
-│   │   ├── controller/
-│   │   │   └── AiController.java             # REST endpoint (SSE streaming)
-│   │   └── ai/
-│   │       ├── CodeForgeAi.java              # Basic chat service
-│   │       ├── CodeForgeAiService.java        # AI Service interface
-│   │       ├── CodeForgeAiServiceFactory.java # AI Service factory & assembly
-│   │       ├── config/
-│   │       │   └── CorsConfig.java           # CORS configuration
-│   │       ├── guardrail/
-│   │       │   └── SafeInputGuardrail.java   # Input safety guardrail
-│   │       ├── listener/
-│   │       │   └── ChatModelListenerConfig.java  # Model call listener
-│   │       ├── mcp/
-│   │       │   └── McpConfig.java            # MCP protocol config (web search)
-│   │       ├── model/
-│   │       │   └── QwenChatModelConfig.java   # Qwen model configuration
-│   │       ├── rag/
-│   │       │   └── RagConfig.java            # RAG knowledge base config
-│   │       └── tools/
-│   │           └── InterviewQuestionTool.java # Interview question search tool
-│   └── resources/
-│       ├── application.yml                   # Main configuration
-│       ├── application-local.yml             # Local dev configuration
-│       ├── system-prompt.txt                 # AI system prompt
-│       └── docs/                             # RAG knowledge base documents
-│           ├── 00_INDEX.md                   # Document index
-│           ├── 01_PROGRAMMING_STUDY_ROUTE.md # Programming study routes
-│           ├── 02_INTERVIEW_QUESTION_BANK.md # Interview question bank
-│           ├── 03_JOB_SEEKING_PLAYBOOK.md    # Job-seeking playbook
-│           ├── 04_PROJECT_LEARNING_ADVICE.md # Project-based learning advice
-│           └── 05_TEMPLATES_AND_CHECKLISTS.md# Templates & checklists
-├── frontend/                        # Frontend project
-│   ├── package.json
-│   ├── vite.config.js               # Vite config & API proxy
-│   ├── index.html
-│   └── src/
-│       ├── App.vue                  # Root component
-│       ├── main.js                  # Entry file
-│       ├── api/                     # API request layer
-│       │   ├── index.js             # Axios instance
-│       │   └── chat.js              # Chat API (SSE)
-│       ├── assets/styles/
-│       │   └── main.css             # Global styles
-│       └── components/
-│           ├── ChatHeader.vue       # Chat header
-│           ├── ChatInput.vue        # Message input box
-│           ├── ChatMessage.vue      # Message bubble
-│           └── WelcomeScreen.vue    # Welcome screen
-└── src/test/                        # Unit tests
-    └── java/com/workspace/codeforgeai/
-        ├── CodeForgeAiApplicationTests.java
-        └── ai/CodeForgeAiServiceTest.java
+┌──────────────────────────────────────────────────────────────┐
+│                      Client  (Vue 3 + Vite)                  │
+│                          :5173                               │
+│              Proxy  /api  ──────────────►  Backend            │
+└──────────────────────────┬───────────────────────────────────┘
+                           │  Server-Sent Events
+┌──────────────────────────▼───────────────────────────────────┐
+│                   Application  (Spring Boot)                  │
+│                          :8081/api                            │
+│                                                               │
+│   ┌─────────────┐    ┌──────────────────────────────────┐    │
+│   │ AiController │───►│      CodeForgeAiService          │    │
+│   │  GET /ai/chat│    │  (LangChain4j AI Services)       │    │
+│   └─────────────┘    │                                    │    │
+│                       │  ┌────────────┐  ┌─────────────┐ │    │
+│                       │  │ Guardrails │  │ Chat Memory │ │    │
+│                       │  └────────────┘  └─────────────┘ │    │
+│                       │  ┌────────────┐  ┌─────────────┐ │    │
+│                       │  │    RAG     │  │    Tools    │ │    │
+│                       │  │ Retriever  │  │ + MCP Client│ │    │
+│                       │  └────────────┘  └─────────────┘ │    │
+│                       └──────────┬───────────────────────┘    │
+│                                  │                             │
+│   ┌──────────────────────────────▼──────────────────────────┐│
+│   │              LLM Provider  (DashScope)                   ││
+│   │     Qwen-Max (Chat)  ·  Qwen-Max (Stream)  ·  Embedding ││
+│   └──────────────────────────────────────────────────────────┘│
+└───────────────────────────────────────────────────────────────┘
+          │                                       │
+          ▼                                       ▼
+   ┌─────────────┐                      ┌──────────────────┐
+   │  RAG Docs   │                      │  External APIs   │
+   │  (Markdown) │                      │  · Zhipu Search  │
+   └─────────────┘                      │  · mianshiya.com │
+                                        └──────────────────┘
 ```
 
 ---
@@ -141,33 +92,33 @@ code-forge-ai/
 
 ### Backend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Java | 21 | Runtime |
-| Spring Boot | 3.5.9 | Web framework |
-| Spring WebFlux | — | Reactive streams (SSE) |
-| LangChain4j | 1.1.0 | AI application framework |
-| LangChain4j DashScope | 1.1.0-beta7 | Qwen model integration |
-| LangChain4j MCP | 1.1.0-beta7 | MCP protocol support |
-| Jsoup | 1.20.1 | Web scraping (interview tool) |
-| Lombok | — | Boilerplate reduction |
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| Runtime | Java (OpenJDK) | 21 LTS |
+| Framework | Spring Boot | 3.5.9 |
+| Reactive Streaming | Spring WebFlux | 6.x |
+| AI Orchestration | LangChain4j | 1.1.0 |
+| LLM Provider | LangChain4j DashScope (Qwen) | 1.1.0-beta7 |
+| Tool Protocol | LangChain4j MCP | 1.1.0-beta7 |
+| Web Scraping | Jsoup | 1.20.1 |
+| Code Generation | Lombok | latest |
 
 ### Frontend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Vue | 3.4+ | UI framework |
-| Vite | 5.x | Build tool |
-| Axios | 1.6+ | HTTP client |
-| EventSource | Native | SSE streaming |
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| Framework | Vue.js (Composition API) | 3.4+ |
+| Build Tooling | Vite | 5.x |
+| HTTP Client | Axios | 1.6+ |
+| Streaming | EventSource (native) | — |
 
-### AI Models
+### AI & Data
 
-| Model | Provider | Purpose |
-|-------|----------|---------|
-| qwen-max | Alibaba DashScope | Primary chat model |
-| text-embedding-v4 | Alibaba DashScope | Text embedding (RAG) |
-| BigModel Web Search | Zhipu AI | MCP web search |
+| Model | Provider | Role |
+|-------|----------|------|
+| Qwen-Max | Alibaba DashScope | Primary chat & streaming model |
+| text-embedding-v4 | Alibaba DashScope | Document embedding for RAG |
+| Web Search | Zhipu AI (BigModel) | Real-time internet search via MCP |
 
 ---
 
@@ -175,52 +126,62 @@ code-forge-ai/
 
 ### Prerequisites
 
-- **JDK** 21+
-- **Maven** 3.9+
-- **Node.js** 18+
-- **npm** 9+
+| Requirement | Minimum Version |
+|-------------|----------------|
+| JDK | 21+ |
+| Maven | 3.9+ |
+| Node.js | 18+ |
+| npm | 9+ |
 
-### 1. Clone the Repository
+### 1. Clone & Navigate
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-org/code-forge-ai.git
 cd code-forge-ai
 ```
 
-### 2. Configure API Keys
+### 2. Configure Credentials
 
-Edit `src/main/resources/application-local.yml` and fill in your API keys:
+Create or edit `src/main/resources/application-local.yml`:
 
 ```yaml
 langchain4j:
   community:
     dashscope:
       chat-model:
-        api-key: 'your-dashscope-api-key'
+        api-key: ${DASHSCOPE_API_KEY}
       embedding-model:
-        api-key: 'your-dashscope-api-key'
+        api-key: ${DASHSCOPE_API_KEY}
       streaming-chat-model:
-        api-key: 'your-dashscope-api-key'
+        api-key: ${DASHSCOPE_API_KEY}
 
 bigmodel:
-  api-key: 'your-bigmodel-api-key'
+  api-key: ${BIGMODEL_API_KEY}
 ```
 
-> **How to obtain API Keys:**
-> - **DashScope (Qwen):** Sign up at [Alibaba DashScope](https://dashscope.aliyun.com/) and create an API Key
-> - **BigModel (Zhipu):** Sign up at [Zhipu AI Open Platform](https://open.bigmodel.cn/) and create an API Key
+<details>
+<summary><strong>Where to get API keys</strong></summary>
 
-### 3. Start the Backend
+| Provider | Sign-Up URL | Key Type |
+|----------|-------------|----------|
+| Alibaba DashScope | [dashscope.aliyun.com](https://dashscope.aliyun.com/) | `DASHSCOPE_API_KEY` |
+| Zhipu AI (BigModel) | [open.bigmodel.cn](https://open.bigmodel.cn/) | `BIGMODEL_API_KEY` |
+
+</details>
+
+### 3. Launch Backend
 
 ```bash
+# Linux / macOS
 ./mvnw spring-boot:run
-# On Windows:
+
+# Windows
 mvnw.cmd spring-boot:run
 ```
 
-The backend will run at `http://localhost:8081` with API base path `/api`.
+The API will be available at `http://localhost:8081/api`.
 
-### 4. Start the Frontend
+### 4. Launch Frontend
 
 ```bash
 cd frontend
@@ -228,93 +189,115 @@ npm install
 npm run dev
 ```
 
-The dev server will run at `http://localhost:5173` with `/api` requests auto-proxied to the backend.
+The UI will be available at `http://localhost:5173`. API requests are automatically proxied to the backend.
 
-### 5. Start Chatting
+### 5. Open & Chat
 
-Open your browser at **http://localhost:5173** and start chatting with the AI assistant!
+Navigate to **http://localhost:5173** — you're ready to go.
 
 ---
 
 ## 📡 API Reference
 
-### Streaming Chat
+### `GET /api/ai/chat`
 
+Initiates a streaming chat session.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `memoryId` | `int` | Yes | Unique session identifier for conversation memory isolation |
+| `message` | `string` | Yes | The user's input message |
+
+**Response:** `text/event-stream`
+
+```text
+data: Based on your question about
+data:  Spring Boot configuration,
+data:  here are the key steps...
 ```
-GET /api/ai/chat?memoryId={id}&message={text}
-```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `memoryId` | int | Session ID (isolates multi-turn conversation memory) |
-| `message` | String | User message content |
+**cURL Example:**
 
-**Response Format:** `text/event-stream` (SSE)
-
-```
-data: Hello
-data: , I'm
-data:  Code Forge AI
-data: , happy
-data:  to help!
+```bash
+curl -N "http://localhost:8081/api/ai/chat?memoryId=1&message=How+do+I+prepare+for+a+backend+interview"
 ```
 
 ---
 
-## 🧩 Core Modules
+## 🧩 Internal Design
 
-### AI Service Assembly (`CodeForgeAiServiceFactory`)
+### Service Composition
 
-Uses LangChain4j's `AiServices.builder()` to wire the following components into a unified service:
+`CodeForgeAiServiceFactory` assembles the AI service pipeline using LangChain4j's declarative `AiServices.builder()`:
 
-- **ChatModel** — Qwen chat model (with listener)
-- **StreamingChatModel** — Streaming chat model
-- **ChatMemoryProvider** — Per-`memoryId` isolated chat memory (sliding window of last 10 messages)
-- **ContentRetriever (RAG)** — Retrieves relevant content from the local knowledge base
-- **Tools** — Interview question search tool (Jsoup scraper)
-- **ToolProvider (MCP)** — Zhipu web search
+```
+Input → Guardrails → Memory Lookup → RAG Retrieval → LLM Call (+ Tools/MCP) → Stream Output
+```
 
-### RAG Knowledge Base (`RagConfig`)
+| Layer | Component | Responsibility |
+|-------|-----------|----------------|
+| Safety | `SafeInputGuardrail` | Blocks requests containing prohibited terms |
+| Memory | `ChatMemoryProvider` | Maintains per-session sliding window (10 messages) |
+| Knowledge | `ContentRetriever` | Embeds & retrieves from local Markdown knowledge base |
+| Tools | `InterviewQuestionTool` | Scrapes real-time interview questions on demand |
+| Search | `McpToolProvider` | Delegates web search to Zhipu via MCP protocol |
+| Observability | `ChatModelListener` | Logs full request/response/error lifecycle |
 
-- Loads Markdown documents from `src/main/resources/docs/`
-- Splits by paragraph (1000 chars/chunk, 200 chars overlap)
-- Embeds using DashScope text-embedding-v4
-- Stores in an in-memory embedding store; retrieves the most relevant content at query time
+### RAG Pipeline
 
-### Input Safety Guardrail (`SafeInputGuardrail`)
+1. **Ingest** — Load Markdown docs from `src/main/resources/docs/`
+2. **Split** — Paragraph-level chunking (1,000 chars, 200-char overlap)
+3. **Transform** — Prepend filename metadata to each segment for context
+4. **Embed** — Vectorize with DashScope `text-embedding-v4`
+5. **Store** — In-memory embedding store (swappable to persistent stores)
+6. **Retrieve** — Cosine similarity search at query time, top-k injection into prompt
 
-- Performs sensitive word detection on user input
-- Rejects the request with a warning when a sensitive word is matched
+### Knowledge Base Contents
 
-### MCP Web Search (`McpConfig`)
-
-- Connects to Zhipu BigModel Web Search via HTTP SSE transport
-- Gives the AI real-time internet search capabilities
+| Document | Coverage |
+|----------|----------|
+| Programming Study Routes | Multi-track roadmaps (backend, data, security) with milestones |
+| Interview Question Bank | Categorized questions with expected signals and answer frameworks |
+| Job-Seeking Playbook | End-to-end guide: positioning → résumé → networking → offers |
+| Project Learning Advice | MVP-to-portfolio methodology with evaluation criteria |
+| Templates & Checklists | Ready-to-use README, résumé, outreach, and prep templates |
 
 ---
 
-## 🔑 Environment Variables
+## ⚙️ Configuration
+
+### Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DASHSCOPE_API_KEY` | Alibaba DashScope API Key | ✅ |
-| `BIGMODEL_API_KEY` | Zhipu BigModel API Key | ✅ |
+| `DASHSCOPE_API_KEY` | Alibaba Cloud DashScope API key for Qwen models | ✅ |
+| `BIGMODEL_API_KEY` | Zhipu AI API key for web search MCP | ✅ |
 
-You can also set these directly in `application-local.yml`, which takes precedence over environment variables.
+> Values in `application-local.yml` take precedence over environment variables.
+
+### Application Properties
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `server.port` | `8081` | Backend HTTP port |
+| `server.servlet.context-path` | `/api` | API base path |
+| `langchain4j.community.dashscope.chat-model.model-name` | `qwen-max` | Primary LLM model |
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Testing
 
 ```bash
+# Run all tests
 ./mvnw test
-# On Windows:
+
+# Windows
 mvnw.cmd test
 ```
 
 ---
 
-## 📦 Production Build
+## 📦 Deployment
 
 ### Backend
 
@@ -328,29 +311,81 @@ java -jar target/code-forge-ai-0.0.1-SNAPSHOT.jar
 ```bash
 cd frontend
 npm run build
+# Output: frontend/dist/
 ```
 
-Build output will be in the `frontend/dist/` directory.
+Serve the `dist/` directory with any static file server (Nginx, Caddy, etc.) and proxy `/api` to the backend.
+
+---
+
+## 📂 Project Structure
+
+```
+code-forge-ai/
+├── pom.xml
+├── src/main/java/com/workspace/codeforgeai/
+│   ├── CodeForgeAiApplication.java          # Application entry point
+│   ├── controller/
+│   │   └── AiController.java               # SSE streaming endpoint
+│   └── ai/
+│       ├── CodeForgeAi.java                 # Low-level chat wrapper
+│       ├── CodeForgeAiService.java          # AI Service contract
+│       ├── CodeForgeAiServiceFactory.java   # Service assembly & wiring
+│       ├── config/CorsConfig.java           # CORS policy
+│       ├── guardrail/SafeInputGuardrail.java
+│       ├── listener/ChatModelListenerConfig.java
+│       ├── mcp/McpConfig.java               # Zhipu MCP transport
+│       ├── model/QwenChatModelConfig.java   # Model bean definition
+│       ├── rag/RagConfig.java               # RAG pipeline setup
+│       └── tools/InterviewQuestionTool.java # @Tool implementation
+├── src/main/resources/
+│   ├── application.yml                      # Shared configuration
+│   ├── application-local.yml                # Local overrides (git-ignored)
+│   ├── system-prompt.txt                    # System prompt template
+│   └── docs/                               # RAG knowledge base
+├── src/test/java/                           # Test suite
+└── frontend/                               # Vue 3 SPA
+    ├── vite.config.js                       # Dev server & proxy
+    └── src/
+        ├── api/                             # HTTP & SSE client layer
+        └── components/                      # UI components
+```
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] User authentication & multi-user support
-- [ ] Chat history persistence (database storage)
-- [ ] Additional AI model integrations (GPT, Claude, etc.)
-- [ ] File upload & code analysis
-- [ ] One-click Docker deployment
-- [ ] Admin dashboard (knowledge base & session management)
+| Quarter | Milestone |
+|---------|-----------|
+| **Next** | Multi-user authentication · Persistent chat history (PostgreSQL) |
+| **v1.1** | Multi-model support (OpenAI, Anthropic) · File upload & code review |
+| **v1.2** | Docker Compose deployment · Helm chart for Kubernetes |
+| **v2.0** | Admin dashboard · Knowledge base CMS · Analytics & usage metrics |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read the following before submitting a PR:
+
+1. Fork the repository and create a feature branch from `main`
+2. Follow existing code style and naming conventions
+3. Include tests for any new functionality
+4. Update documentation as needed
+5. Open a Pull Request with a clear description of the changes
 
 ---
 
 ## 📄 License
 
-This project is for learning and educational purposes only.
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-<p align="center">
-  Made with ❤️ by Code Forge AI Team
-</p>
+<div align="center">
+
+**[⬆ Back to Top](#code-forge-ai)**
+
+Built with [LangChain4j](https://docs.langchain4j.dev/) · [Spring Boot](https://spring.io/projects/spring-boot) · [Vue.js](https://vuejs.org/)
+
+</div>
