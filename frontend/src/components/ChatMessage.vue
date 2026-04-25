@@ -1,12 +1,11 @@
 <template>
-  <div 
+  <div
     class="message-bubble"
     :class="[
       isUser ? 'user-message' : 'ai-message',
       { 'error-message': isError }
     ]"
   >
-    <!-- Avatar -->
     <div class="avatar" :class="isUser ? 'user-avatar' : 'ai-avatar'" aria-hidden="true">
       <template v-if="isUser">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -15,32 +14,23 @@
         </svg>
       </template>
       <template v-else>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 8V4H8" />
-          <rect width="16" height="12" x="4" y="8" rx="2" />
-          <path d="M2 14h2" />
-          <path d="M20 14h2" />
-          <path d="M15 13v2" />
-          <path d="M9 13v2" />
-        </svg>
+        <img src="/career-agent-mark.svg" alt="" />
       </template>
     </div>
-    
-    <!-- Message Content -->
+
     <div class="message-content">
       <div class="message-header">
-        <span class="sender-name">{{ isUser ? 'You' : 'Code Forge AI' }}</span>
+        <span class="sender-name">{{ isUser ? t('chatMessage.you') : t('chatMessage.agent') }}</span>
         <span class="timestamp">{{ formattedTime }}</span>
       </div>
-      <div 
-        class="message-text" 
-        :class="{ 'streaming': isStreaming }"
+      <div
+        class="message-text"
+        :class="{ streaming: isStreaming }"
         v-html="renderedContent"
       ></div>
-      
-      <!-- Retry Button for Error Messages -->
-      <button 
-        v-if="isError && showRetry" 
+
+      <button
+        v-if="isError && showRetry"
         class="retry-btn"
         @click="$emit('retry')"
       >
@@ -50,7 +40,7 @@
           <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
           <path d="M8 16H3v5" />
         </svg>
-        Retry
+        {{ t('chatMessage.retry') }}
       </button>
     </div>
   </div>
@@ -58,6 +48,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   content: {
@@ -87,48 +78,35 @@ const props = defineProps({
 })
 
 defineEmits(['retry'])
+const { locale, t } = useI18n()
 
-// Format timestamp
 const formattedTime = computed(() => {
   const date = new Date(props.timestamp)
-  return date.toLocaleTimeString('en-US', {
+  return date.toLocaleTimeString(locale.value, {
     hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+    minute: '2-digit'
   })
 })
 
-// Simple markdown-like rendering
 const renderedContent = computed(() => {
   if (!props.content) {
     return props.isStreaming ? '<span class="typing-indicator"></span>' : ''
   }
-  
+
   let text = props.content
-  
-  // Escape HTML first
   text = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-  
-  // Code blocks (```...```)
+
   text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
     return `<pre class="code-block"><code>${code.trim()}</code></pre>`
   })
-  
-  // Inline code (`...`)
   text = text.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
-  
-  // Bold (**...**)
   text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-  
-  // Italic (*...*)
   text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-  
-  // Line breaks
   text = text.replace(/\n/g, '<br>')
-  
+
   return text
 })
 </script>
@@ -137,8 +115,8 @@ const renderedContent = computed(() => {
 .message-bubble {
   display: flex;
   gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  max-width: 85%;
+  width: min(88%, 860px);
+  padding: 0.15rem;
   animation: fadeIn 0.2s ease;
 }
 
@@ -153,54 +131,55 @@ const renderedContent = computed(() => {
   }
 }
 
-/* User messages aligned to the right */
 .user-message {
   margin-left: auto;
   flex-direction: row-reverse;
 }
 
-/* AI messages aligned to the left */
 .ai-message {
   margin-right: auto;
 }
 
-/* Avatar Styles */
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid rgba(188, 199, 210, 0.78);
+  box-shadow: 0 16px 30px -24px rgba(16, 38, 61, 0.32);
 }
 
-.avatar svg {
+.avatar svg,
+.avatar img {
   width: 20px;
   height: 20px;
 }
 
 .user-avatar {
-  background-color: var(--color-primary);
-  color: white;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 246, 241, 0.98));
+  color: var(--color-primary);
 }
 
 .ai-avatar {
-  background-color: var(--color-secondary);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 246, 241, 0.98));
   color: white;
 }
 
-/* Message Content */
 .message-content {
   flex: 1;
   min-width: 0;
+  display: grid;
+  gap: 0.45rem;
 }
 
 .message-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xs);
+  padding-inline: 0.25rem;
 }
 
 .user-message .message-header {
@@ -208,9 +187,11 @@ const renderedContent = computed(() => {
 }
 
 .sender-name {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--color-text);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
 }
 
 .timestamp {
@@ -219,42 +200,43 @@ const renderedContent = computed(() => {
 }
 
 .message-text {
-  padding: var(--spacing-md);
-  border-radius: var(--radius-lg);
-  font-size: 0.9375rem;
-  line-height: 1.6;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  font-size: 0.97rem;
+  line-height: 1.68;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .user-message .message-text {
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), #173552);
   color: white;
-  border-bottom-right-radius: var(--radius-sm);
+  border-bottom-right-radius: 10px;
+  box-shadow: 0 22px 42px -30px rgba(16, 38, 61, 0.72);
 }
 
 .ai-message .message-text {
-  background-color: var(--color-surface);
+  background:
+    radial-gradient(circle at top right, rgba(20, 124, 131, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 247, 242, 0.98));
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-bottom-left-radius: var(--radius-sm);
+  border: 1px solid rgba(188, 199, 210, 0.78);
+  border-bottom-left-radius: 10px;
   box-shadow: var(--shadow-sm);
 }
 
-/* Error Message Styles */
 .error-message .message-text {
-  background-color: var(--color-error-bg);
+  background: linear-gradient(180deg, rgba(252, 237, 238, 0.95), rgba(255, 245, 245, 0.95));
   color: var(--color-error);
-  border-color: var(--color-error);
+  border-color: rgba(201, 74, 74, 0.32);
 }
 
-/* Streaming Indicator */
 .message-text.streaming::after {
-  content: '▋';
+  content: '▏';
   display: inline-block;
   animation: blink 1s step-end infinite;
-  margin-left: 2px;
-  color: var(--color-primary);
+  margin-left: 3px;
+  color: currentColor;
 }
 
 @keyframes blink {
@@ -262,8 +244,8 @@ const renderedContent = computed(() => {
   50% { opacity: 0; }
 }
 
-/* Typing Indicator */
 .typing-indicator {
+  position: relative;
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -275,20 +257,22 @@ const renderedContent = computed(() => {
 .typing-indicator::before,
 .typing-indicator::after {
   content: '';
+  position: absolute;
   display: inline-block;
   width: 8px;
   height: 8px;
   background-color: var(--color-text-light);
   border-radius: 50%;
-  margin-left: 4px;
   animation: typing 1.4s infinite ease-in-out;
 }
 
 .typing-indicator::before {
+  left: 12px;
   animation-delay: 0.2s;
 }
 
 .typing-indicator::after {
+  left: 24px;
   animation-delay: 0.4s;
 }
 
@@ -303,77 +287,59 @@ const renderedContent = computed(() => {
   }
 }
 
-/* Code Styling */
+.retry-btn {
+  margin-top: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(201, 74, 74, 0.24);
+  background: rgba(252, 237, 238, 0.95);
+  color: var(--color-error);
+  font-weight: 700;
+}
+
+.retry-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 :deep(.code-block) {
-  background-color: #1e293b;
-  color: #e2e8f0;
+  background: #13283e;
+  color: #e9f0f7;
   padding: var(--spacing-md);
-  border-radius: var(--radius-sm);
+  border-radius: 16px;
   overflow-x: auto;
   margin: var(--spacing-sm) 0;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  border: 1px solid rgba(186, 124, 55, 0.18);
+  font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 :deep(.inline-code) {
-  background-color: rgba(0, 0, 0, 0.08);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background-color: rgba(16, 42, 67, 0.08);
+  padding: 0.15rem 0.35rem;
+  border-radius: 8px;
+  font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
   font-size: 0.875em;
 }
 
-.user-message :deep(.inline-code) {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Retry Button */
-.retry-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-error);
-  color: white;
-  border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  transition: background-color var(--transition-normal);
-  cursor: pointer;
-}
-
-.retry-btn:hover {
-  background-color: #b91c1c;
-}
-
-.retry-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* Mobile Responsive */
 @media (max-width: 640px) {
   .message-bubble {
-    max-width: 95%;
-    padding: var(--spacing-sm);
+    width: 100%;
     gap: var(--spacing-sm);
   }
-  
+
   .avatar {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
   }
-  
-  .avatar svg {
-    width: 16px;
-    height: 16px;
-  }
-  
+
   .message-text {
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: 0.875rem;
+    padding: 0.85rem 0.9rem;
+    font-size: 0.94rem;
   }
 }
 </style>

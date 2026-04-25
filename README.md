@@ -1,187 +1,366 @@
 <div align="center">
 
-# Code Forge AI
+# AI Career Decision & Interview Prep Agent
 
-### AI-Powered Software Engineering Coach
-
-An intelligent conversational platform that combines LLM reasoning, retrieval-augmented generation, and real-time tool execution to accelerate developer growth — from first commit to signed offer letter.
+### Workflow-First Job-Fit Analysis and Interview Preparation
 
 [![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5.9-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-2B6CB0)](https://docs.langchain4j.dev/)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
-[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Contributing](#-contributing)
+[Getting Started](#getting-started) | [Quick Demo](#quick-demo) | [Core Workflow](#core-workflow) | [API](#api) | [Architecture](#architecture)
 
 </div>
 
----
+## User Problem
 
-## Why Code Forge AI?
+English:
 
-Most AI coding assistants stop at autocomplete. **Code Forge AI** goes further — it acts as an **engineering mentor** that understands your career context:
+Many AI career tools answer questions well but fail to guide a candidate through a concrete decision workflow:
 
-- **Write & debug code** with structured problem-solving and test-driven guidance
-- **Plan your learning path** with milestone-driven roadmaps tailored to your target role
-- **Prepare for interviews** with real questions pulled from live sources, not static datasets
-- **Navigate your job search** end-to-end: résumé, portfolio, networking, negotiation
+1. Read the job description
+2. Extract the real must-haves
+3. Compare them against the candidate profile
+4. Identify the gaps that actually affect hiring confidence
+5. Turn those gaps into interview preparation and next actions
 
-All of this is backed by a curated knowledge base, real-time web search, and purpose-built tooling — not just a raw LLM prompt.
+This project is designed around that workflow instead of stopping at chat.
 
----
+中文：
 
-## ✨ Features
+很多 AI 求职工具虽然能回答问题，但并不能真正带着候选人走完一条清晰的决策工作流：
 
-| | Feature | Details |
-|---|---------|---------|
-| ⚡ | **Streaming Responses** | Token-by-token delivery via SSE for a natural, real-time conversation experience |
-| 📚 | **RAG-Enhanced Answers** | Domain-specific knowledge base (study routes, interview banks, career playbooks) automatically retrieved and injected into context |
-| 🔌 | **MCP Protocol Integration** | Live web search via Model Context Protocol — the AI can access up-to-date information beyond its training cutoff |
-| 🛠️ | **Extensible Tool System** | Built-in interview question scraper; easily add new tools via LangChain4j's `@Tool` annotation |
-| 🛡️ | **Input Guardrails** | Pluggable safety layer that intercepts and blocks unsafe or abusive input before it reaches the model |
-| 🧠 | **Session-Isolated Memory** | Each conversation maintains independent context history with a configurable sliding window |
-| 📊 | **Observability** | Full request/response/error lifecycle logging via `ChatModelListener` for debugging and monitoring |
-| 📱 | **Responsive UI** | Clean, mobile-friendly chat interface built with Vue 3 Composition API |
+1. 读取岗位描述
+2. 提炼真正影响招聘判断的核心要求
+3. 对照候选人背景做证据分析
+4. 找出会影响录用信心的关键差距
+5. 把这些差距转成可执行的面试准备与下一步动作
 
----
+这个项目的核心不是“陪聊”，而是把这条工作流真正做出来。
 
-## 🏗️ Architecture
+## Why This Is An Agent, Not Just A Chatbot
 
+The application uses a staged agentic workflow with typed outputs:
+
+1. `JD Parsing Agent` extracts role signals, must-haves, and likely interview themes
+2. `Candidate Analysis Agent` structures strengths, evidence, and missing signals from a resume or profile
+3. `Gap Analysis Agent` compares the candidate against the role and decides where confidence breaks down
+4. `Interview Prep Agent` converts those findings into targeted prep, positioning advice, and next steps
+
+The older streaming chat layer still exists, but it is now positioned as a support capability for follow-up questions rather than the main product.
+
+## Core Workflow
+
+`JD parsing -> candidate analysis -> gap analysis -> interview prep generation`
+
+Example output bundle:
+
+- structured job requirements
+- candidate-fit summary
+- prioritized gaps and risks
+- interview preparation plan
+- company research suggestions
+- practical next steps
+
+## Key Capabilities
+
+- Java 21 + Spring Boot backend
+- LangChain4j AI services for typed workflow stages
+- RAG over local career and interview preparation documents
+- MCP web search integration for fresh context
+- tool-based interview question retrieval
+- streaming support chat with session-isolated memory
+- workflow-linked support chat that reuses the saved `workflowId` artifact bundle for follow-up explanations and prep
+- upload intake for JD and candidate documents (`.pdf`, `.txt`, `.md`)
+- H2-backed workflow persistence plus local file storage for uploaded source documents
+
+## Quick Demo
+
+Canonical scenario: `Senior AI Product Manager for an enterprise GenAI product`
+
+The app now supports one-click language switching between `English` and `中文`. Existing saved workflow artifacts keep their original `contentLocale`; rerun the analysis to regenerate the artifact in the current language, while Support Chat replies in the active UI language.
+
+项目现在支持 `English / 中文` 一键切换。已经生成并保存的 workflow artifact 会保留原始 `contentLocale`；如果你希望结果内容也切换语言，需要重新运行分析。Support Chat 会按照当前界面语言继续回复。
+
+This repo includes a portfolio-ready demo pack under [`docs/demo/ai-pm-canonical`](docs/demo/ai-pm-canonical/).
+
+### Live App Demo
+
+1. Open the canonical [job description](docs/demo/ai-pm-canonical/job-description.md) and [candidate profile](docs/demo/ai-pm-canonical/candidate-resume.md).
+2. Run the backend and frontend locally.
+3. Paste the sample inputs into the workflow intake form and submit.
+4. Review the structured workflow result.
+5. Enter Support Chat and ask a follow-up grounded in the saved `workflowId`.
+
+Minimal request example:
+
+```bash
+curl -X POST http://localhost:8081/api/career/workflow/analyze \
+  -H "Content-Type: application/json" \
+  -d @docs/demo/ai-pm-canonical/workflow-request.json
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                      Client  (Vue 3 + Vite)                  │
-│                          :5173                               │
-│              Proxy  /api  ──────────────►  Backend            │
-└──────────────────────────┬───────────────────────────────────┘
-                           │  Server-Sent Events
-┌──────────────────────────▼───────────────────────────────────┐
-│                   Application  (Spring Boot)                  │
-│                          :8081/api                            │
-│                                                               │
-│   ┌─────────────┐    ┌──────────────────────────────────┐    │
-│   │ AiController │───►│      CodeForgeAiService          │    │
-│   │  GET /ai/chat│    │  (LangChain4j AI Services)       │    │
-│   └─────────────┘    │                                    │    │
-│                       │  ┌────────────┐  ┌─────────────┐ │    │
-│                       │  │ Guardrails │  │ Chat Memory │ │    │
-│                       │  └────────────┘  └─────────────┘ │    │
-│                       │  ┌────────────┐  ┌─────────────┐ │    │
-│                       │  │    RAG     │  │    Tools    │ │    │
-│                       │  │ Retriever  │  │ + MCP Client│ │    │
-│                       │  └────────────┘  └─────────────┘ │    │
-│                       └──────────┬───────────────────────┘    │
-│                                  │                             │
-│   ┌──────────────────────────────▼──────────────────────────┐│
-│   │              LLM Provider  (DashScope)                   ││
-│   │     Qwen-Max (Chat)  ·  Qwen-Max (Stream)  ·  Embedding ││
-│   └──────────────────────────────────────────────────────────┘│
-└───────────────────────────────────────────────────────────────┘
-          │                                       │
-          ▼                                       ▼
-   ┌─────────────┐                      ┌──────────────────┐
-   │  RAG Docs   │                      │  External APIs   │
-   │  (Markdown) │                      │  · Zhipu Search  │
-   └─────────────┘                      │  · mianshiya.com │
-                                        └──────────────────┘
+
+### Static Portfolio Demo
+
+- Canonical request: [workflow-request.json](docs/demo/ai-pm-canonical/workflow-request.json)
+- Canonical response artifact: [workflow-response.sample.json](docs/demo/ai-pm-canonical/workflow-response.sample.json)
+- Workflow-linked chat examples: [support-chat-followups.md](docs/demo/ai-pm-canonical/support-chat-followups.md)
+- Demo narration: [demo-script.md](docs/demo/ai-pm-canonical/demo-script.md)
+- Screenshots:
+  - [01-intake.png](docs/demo/ai-pm-canonical/screenshots/01-intake.png)
+  - [02-workflow-result.png](docs/demo/ai-pm-canonical/screenshots/02-workflow-result.png)
+  - [03-support-chat.png](docs/demo/ai-pm-canonical/screenshots/03-support-chat.png)
+
+Live model results may vary, but [`workflow-response.sample.json`](docs/demo/ai-pm-canonical/workflow-response.sample.json) is the canonical portfolio artifact for this scenario.
+
+## Architecture
+
+### Main Modules
+
+- `src/main/java/com/workspace/codeforgeai/ai`
+  Shared infrastructure: models, RAG, MCP, tools, guardrails, and support chat
+- `src/main/java/com/workspace/codeforgeai/ai/demo`
+  Local deterministic fallback chat service for demo mode
+- `src/main/java/com/workspace/codeforgeai/career/api`
+  Workflow request/response DTOs and REST controller
+- `src/main/java/com/workspace/codeforgeai/career/demo`
+  Local deterministic fallback workflow stages for demo mode
+- `src/main/java/com/workspace/codeforgeai/career/workflow`
+  Workflow orchestrator, decision summary, and session store
+- `src/main/java/com/workspace/codeforgeai/career/jd`
+  JD parsing agent contract and output model
+- `src/main/java/com/workspace/codeforgeai/career/candidate`
+  Candidate analysis agent contract and output model
+- `src/main/java/com/workspace/codeforgeai/career/gap`
+  Gap analysis agent contract and output model
+- `src/main/java/com/workspace/codeforgeai/career/interview`
+  Interview prep agent contract and output model
+
+### Request Flow
+
+```text
+POST /api/career/workflow/analyze
+POST /api/career/workflow/analyze-upload
+    -> CareerWorkflowController
+    -> CareerWorkflowApplicationService
+        -> CareerDocumentUploadService (multipart path only)
+        -> CareerWorkflowOrchestrator
+        -> JdParsingAiService
+        -> CandidateAnalysisAiService
+        -> GapAnalysisAiService
+        -> InterviewPrepAiService
+    -> WorkflowSessionStore
+    -> Structured workflow response
 ```
 
----
+### Support Capabilities
 
-## 🔧 Tech Stack
+The project keeps the original strengths and repurposes them as support layers:
 
-### Backend
+- `GET /api/ai/chat` for streaming follow-up chat
+- RAG for interview and job-search playbooks
+- MCP search for fresh company and market context
+- tool calling for interview question retrieval
+- multi-session memory for support conversations
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Runtime | Java (OpenJDK) | 21 LTS |
-| Framework | Spring Boot | 3.5.9 |
-| Reactive Streaming | Spring WebFlux | 6.x |
-| AI Orchestration | LangChain4j | 1.1.0 |
-| LLM Provider | LangChain4j DashScope (Qwen) | 1.1.0-beta7 |
-| Tool Protocol | LangChain4j MCP | 1.1.0-beta7 |
-| Web Scraping | Jsoup | 1.20.1 |
-| Code Generation | Lombok | latest |
+The support chat now forms a closed loop with the main workflow: after a workflow run, the frontend carries the saved `workflowId` into the streaming chat endpoint so follow-up answers are grounded in the stored JD analysis, candidate analysis, gap analysis, and interview prep artifacts.
 
-### Frontend
+## API
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Framework | Vue.js (Composition API) | 3.4+ |
-| Build Tooling | Vite | 5.x |
-| HTTP Client | Axios | 1.6+ |
-| Streaming | EventSource (native) | — |
+### `POST /api/career/workflow/analyze`
 
-### AI & Data
+Runs the workflow-first career agent with pasted JD and candidate text.
 
-| Model | Provider | Role |
-|-------|----------|------|
-| Qwen-Max | Alibaba DashScope | Primary chat & streaming model |
-| text-embedding-v4 | Alibaba DashScope | Document embedding for RAG |
-| Web Search | Zhipu AI (BigModel) | Real-time internet search via MCP |
+Example request:
 
----
+```json
+{
+  "locale": "en",
+  "targetRole": "Senior Backend Engineer",
+  "targetLevel": "Senior",
+  "companyName": "ExampleCorp",
+  "jobDescription": "Paste the JD here...",
+  "candidateProfile": "Paste the resume or candidate summary here...",
+  "focusAreas": ["system design", "behavioral"],
+  "includeCompanyResearch": true
+}
+```
 
-## 🚀 Getting Started
+Example response shape:
+
+```json
+{
+  "workflowId": "uuid",
+  "contentLocale": "en",
+  "decisionSummary": {
+    "fitLevel": "COMPETITIVE_WITH_GAPS",
+    "recommendedPositioning": "Senior Backend Engineer"
+  },
+  "jdAnalysis": {},
+  "candidateAnalysis": {},
+  "gapAnalysis": {},
+  "interviewPrep": {}
+}
+```
+
+Standard validation error example:
+
+```json
+{
+  "timestamp": "2026-04-11T12:00:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Request validation failed.",
+  "path": "/api/career/workflow/analyze",
+  "details": [
+    {
+      "field": "jobDescription",
+      "message": "jobDescription is required."
+    }
+  ]
+}
+```
+
+### `GET /api/career/workflow/{workflowId}`
+
+Fetches the persisted artifact bundle for a previously executed workflow. This survives backend restarts because workflow results are stored in H2 and backed by a local upload directory.
+
+If the workflow does not exist, the API returns a unified `404` error envelope:
+
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Workflow not found."
+}
+```
+
+### `GET /api/ai/chat`
+
+Streaming support chat endpoint. This remains useful for follow-up questions, brainstorming, and ad hoc coaching after the structured workflow is complete.
+
+Query parameters:
+
+- `memoryId` required
+- `message` required
+- `workflowId` optional but recommended after a workflow run
+- `locale` optional; defaults from `Accept-Language`
+
+When `workflowId` is provided, the backend injects the saved workflow artifact bundle into the support chat context so the response can explain the fit call, elaborate on gaps, and suggest targeted next steps without restarting the analysis flow.
+
+### `POST /api/career/workflow/analyze-upload`
+
+Runs the same workflow with `multipart/form-data` so the user can upload a JD or candidate file instead of pasting text.
+
+Supported file types:
+
+- `.pdf`
+- `.txt`
+- `.md`
+
+Upload behavior:
+
+- each document slot can use pasted text or an uploaded file
+- if both are provided for the same slot, the uploaded file wins
+- text-based PDFs are supported in v1
+- image-only PDFs are rejected because OCR is not included in this version
+
+## Getting Started
 
 ### Prerequisites
 
-| Requirement | Minimum Version |
-|-------------|----------------|
-| JDK | 21+ |
-| Maven | 3.9+ |
-| Node.js | 18+ |
-| npm | 9+ |
+- JDK 21+
+- Maven 3.9+
+- Node.js 18+
+- npm 9+
 
-### 1. Clone & Navigate
+### Runtime Modes
 
-```bash
-git clone https://github.com/your-org/code-forge-ai.git
-cd code-forge-ai
-```
+The backend now supports two explicit modes:
 
-### 2. Configure Credentials
+- `demo`  
+  Local deterministic mode. No external keys are required, and the main workflow plus workflow-linked support chat still run end-to-end.
+- `provider`  
+  Uses DashScope/Qwen, optional MCP search, and optional RAG retrieval enhancements. Missing RAG or MCP no longer blocks startup, but `DASHSCOPE_API_KEY` is still required in this mode.
 
-Create or edit `src/main/resources/application-local.yml`:
+`local` profile defaults to demo mode through [`application-local.yml`](src/main/resources/application-local.yml).
 
-```yaml
-langchain4j:
-  community:
-    dashscope:
-      chat-model:
-        api-key: ${DASHSCOPE_API_KEY}
-      embedding-model:
-        api-key: ${DASHSCOPE_API_KEY}
-      streaming-chat-model:
-        api-key: ${DASHSCOPE_API_KEY}
-
-bigmodel:
-  api-key: ${BIGMODEL_API_KEY}
-```
-
-<details>
-<summary><strong>Where to get API keys</strong></summary>
-
-| Provider | Sign-Up URL | Key Type |
-|----------|-------------|----------|
-| Alibaba DashScope | [dashscope.aliyun.com](https://dashscope.aliyun.com/) | `DASHSCOPE_API_KEY` |
-| Zhipu AI (BigModel) | [open.bigmodel.cn](https://open.bigmodel.cn/) | `BIGMODEL_API_KEY` |
-
-</details>
-
-### 3. Launch Backend
+### Run Backend In Local Demo Mode
 
 ```bash
-# Linux / macOS
 ./mvnw spring-boot:run
+```
 
-# Windows
+Windows:
+
+```bash
 mvnw.cmd spring-boot:run
 ```
 
-The API will be available at `http://localhost:8081/api`.
+This is the recommended default for portfolio demos. It starts with no provider keys and still supports:
 
-### 4. Launch Frontend
+- `POST /api/career/workflow/analyze`
+- `POST /api/career/workflow/analyze-upload`
+- `GET /api/career/workflow/{workflowId}`
+- `GET /api/ai/chat`
+
+### Run Backend In Provider Mode
+
+macOS / Linux:
+
+```bash
+export CAREER_AI_MODE=provider
+export DASHSCOPE_API_KEY=your_real_dashscope_key
+export BIGMODEL_API_KEY=your_optional_bigmodel_key
+./mvnw spring-boot:run
+```
+
+Windows PowerShell:
+
+```powershell
+$env:CAREER_AI_MODE="provider"
+$env:DASHSCOPE_API_KEY="your_real_dashscope_key"
+$env:BIGMODEL_API_KEY="your_optional_bigmodel_key"
+.\mvnw.cmd spring-boot:run
+```
+
+In provider mode:
+
+- missing `DASHSCOPE_API_KEY` fails fast with a clear startup error
+- missing `BIGMODEL_API_KEY` disables MCP web search only
+- retrieval initialization failures degrade to no-op retrieval instead of killing the app
+
+If Maven is still using Java 17 on Windows, point it to JDK 21 before running:
+
+```powershell
+$env:JAVA_HOME="C:\Program Files\Java\jdk-21"
+$env:Path="C:\Program Files\Java\jdk-21\bin;$env:Path"
+.\mvnw.cmd test
+```
+
+Backend URL: `http://localhost:8081/api`
+
+### Local Persistence
+
+- workflow database: `./data/codeforge-ai-db*`
+- uploaded source files: `./data/uploads/{workflowId}/`
+
+Current persistence scope:
+
+- workflow inputs
+- extracted document text
+- uploaded file metadata
+- structured workflow response
+
+Current v1 limitations:
+
+- no OCR for scanned PDFs
+- no saved analyses list UI yet
+- frontend restores the latest saved `workflowId` only
+- demo mode uses deterministic Java fallback logic for explainable local runs rather than live model output
+
+### Run Frontend
 
 ```bash
 cd frontend
@@ -189,203 +368,80 @@ npm install
 npm run dev
 ```
 
-The UI will be available at `http://localhost:5173`. API requests are automatically proxied to the backend.
+Frontend URL: `http://localhost:5173`
 
-### 5. Open & Chat
+### Language Switching
 
-Navigate to **http://localhost:5173** — you're ready to go.
+- Default locale:
+  - browser language starting with `zh` -> `zh-CN`
+  - everything else -> `en`
+- The selected locale is stored in browser local storage as `careerAgent_locale`
+- The header provides a one-click `中文 | EN` switch
+- UI text switches immediately
+- Saved workflow results keep their original language and show a notice if the UI language no longer matches
+- New workflow analyses and new Support Chat replies use the current locale
 
----
+## Knowledge Base
 
-## 📡 API Reference
+The local RAG corpus already supports the repositioned workflow:
 
-### `GET /api/ai/chat`
+- interview question bank
+- job-seeking playbook
+- project and portfolio advice
+- templates and checklists
 
-Initiates a streaming chat session.
+This lets the workflow stay grounded in reusable domain knowledge without changing the core stack.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `memoryId` | `int` | Yes | Unique session identifier for conversation memory isolation |
-| `message` | `string` | Yes | The user's input message |
+## Why This Is Portfolio-Friendly
 
-**Response:** `text/event-stream`
+- The system has a clear product narrative
+- The workflow is easy to explain in an AI PM interview
+- The architecture cleanly separates orchestration, prompts, tools, retrieval, and support chat
+- The implementation stays in Java and reuses Spring Boot + LangChain4j instead of hiding the logic in a larger rewrite
 
-```text
-data: Based on your question about
-data:  Spring Boot configuration,
-data:  here are the key steps...
-```
+## Future Extensibility
 
-**cURL Example:**
+- saved analyses list and history view
+- OCR for scanned resume and JD PDFs
+- role-specific scoring rubrics
+- company-specific research packets
+- mock interview mode grounded in the saved workflow artifact bundle
 
-```bash
-curl -N "http://localhost:8081/api/ai/chat?memoryId=1&message=How+do+I+prepare+for+a+backend+interview"
-```
-
----
-
-## 🧩 Internal Design
-
-### Service Composition
-
-`CodeForgeAiServiceFactory` assembles the AI service pipeline using LangChain4j's declarative `AiServices.builder()`:
-
-```
-Input → Guardrails → Memory Lookup → RAG Retrieval → LLM Call (+ Tools/MCP) → Stream Output
-```
-
-| Layer | Component | Responsibility |
-|-------|-----------|----------------|
-| Safety | `SafeInputGuardrail` | Blocks requests containing prohibited terms |
-| Memory | `ChatMemoryProvider` | Maintains per-session sliding window (10 messages) |
-| Knowledge | `ContentRetriever` | Embeds & retrieves from local Markdown knowledge base |
-| Tools | `InterviewQuestionTool` | Scrapes real-time interview questions on demand |
-| Search | `McpToolProvider` | Delegates web search to Zhipu via MCP protocol |
-| Observability | `ChatModelListener` | Logs full request/response/error lifecycle |
-
-### RAG Pipeline
-
-1. **Ingest** — Load Markdown docs from `src/main/resources/docs/`
-2. **Split** — Paragraph-level chunking (1,000 chars, 200-char overlap)
-3. **Transform** — Prepend filename metadata to each segment for context
-4. **Embed** — Vectorize with DashScope `text-embedding-v4`
-5. **Store** — In-memory embedding store (swappable to persistent stores)
-6. **Retrieve** — Cosine similarity search at query time, top-k injection into prompt
-
-### Knowledge Base Contents
-
-| Document | Coverage |
-|----------|----------|
-| Programming Study Routes | Multi-track roadmaps (backend, data, security) with milestones |
-| Interview Question Bank | Categorized questions with expected signals and answer frameworks |
-| Job-Seeking Playbook | End-to-end guide: positioning → résumé → networking → offers |
-| Project Learning Advice | MVP-to-portfolio methodology with evaluation criteria |
-| Templates & Checklists | Ready-to-use README, résumé, outreach, and prep templates |
-
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DASHSCOPE_API_KEY` | Alibaba Cloud DashScope API key for Qwen models | ✅ |
-| `BIGMODEL_API_KEY` | Zhipu AI API key for web search MCP | ✅ |
-
-> Values in `application-local.yml` take precedence over environment variables.
-
-### Application Properties
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `server.port` | `8081` | Backend HTTP port |
-| `server.servlet.context-path` | `/api` | API base path |
-| `langchain4j.community.dashscope.chat-model.model-name` | `qwen-max` | Primary LLM model |
-
----
-
-## 🧪 Testing
+## Testing
 
 ```bash
-# Run all tests
 ./mvnw test
-
-# Windows
-mvnw.cmd test
 ```
 
----
+Windows PowerShell:
 
-## 📦 Deployment
-
-### Backend
-
-```bash
-./mvnw clean package -DskipTests
-java -jar target/code-forge-ai-0.0.1-SNAPSHOT.jar
+```powershell
+$env:JAVA_HOME="C:\Program Files\Java\jdk-21"
+$env:Path="C:\Program Files\Java\jdk-21\bin;$env:Path"
+.\mvnw.cmd test
 ```
 
-### Frontend
+Frontend build check:
 
 ```bash
 cd frontend
 npm run build
-# Output: frontend/dist/
 ```
 
-Serve the `dist/` directory with any static file server (Nginx, Caddy, etc.) and proxy `/api` to the backend.
+Local demo smoke:
 
----
-
-## 📂 Project Structure
-
-```
-code-forge-ai/
-├── pom.xml
-├── src/main/java/com/workspace/codeforgeai/
-│   ├── CodeForgeAiApplication.java          # Application entry point
-│   ├── controller/
-│   │   └── AiController.java               # SSE streaming endpoint
-│   └── ai/
-│       ├── CodeForgeAi.java                 # Low-level chat wrapper
-│       ├── CodeForgeAiService.java          # AI Service contract
-│       ├── CodeForgeAiServiceFactory.java   # Service assembly & wiring
-│       ├── config/CorsConfig.java           # CORS policy
-│       ├── guardrail/SafeInputGuardrail.java
-│       ├── listener/ChatModelListenerConfig.java
-│       ├── mcp/McpConfig.java               # Zhipu MCP transport
-│       ├── model/QwenChatModelConfig.java   # Model bean definition
-│       ├── rag/RagConfig.java               # RAG pipeline setup
-│       └── tools/InterviewQuestionTool.java # @Tool implementation
-├── src/main/resources/
-│   ├── application.yml                      # Shared configuration
-│   ├── application-local.yml                # Local overrides (git-ignored)
-│   ├── system-prompt.txt                    # System prompt template
-│   └── docs/                               # RAG knowledge base
-├── src/test/java/                           # Test suite
-└── frontend/                               # Vue 3 SPA
-    ├── vite.config.js                       # Dev server & proxy
-    └── src/
-        ├── api/                             # HTTP & SSE client layer
-        └── components/                      # UI components
+```powershell
+.\scripts\demo-smoke.ps1
 ```
 
----
+The smoke script runs backend tests, builds the frontend, starts the backend in demo mode, posts the canonical workflow request, verifies workflow restore, and checks workflow-linked support chat.
 
-## 🗺️ Roadmap
+API-key-dependent provider tests are still gated behind environment variables, while the demo-mode integration suite runs without external credentials.
 
-| Quarter | Milestone |
-|---------|-----------|
-| **Next** | Multi-user authentication · Persistent chat history (PostgreSQL) |
-| **v1.1** | Multi-model support (OpenAI, Anthropic) · File upload & code review |
-| **v1.2** | Docker Compose deployment · Helm chart for Kubernetes |
-| **v2.0** | Admin dashboard · Knowledge base CMS · Analytics & usage metrics |
+Common failure cases:
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read the following before submitting a PR:
-
-1. Fork the repository and create a feature branch from `main`
-2. Follow existing code style and naming conventions
-3. Include tests for any new functionality
-4. Update documentation as needed
-5. Open a Pull Request with a clear description of the changes
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-<div align="center">
-
-**[⬆ Back to Top](#code-forge-ai)**
-
-Built with [LangChain4j](https://docs.langchain4j.dev/) · [Spring Boot](https://spring.io/projects/spring-boot) · [Vue.js](https://vuejs.org/)
-
-</div>
+- Missing `jobDescription` or `candidateProfile` -> `400` with field-level validation details
+- Missing upload sources for JD or candidate profile -> `400` with field-level validation details
+- Unsupported upload type or image-only PDF -> `400` with a unified error envelope
+- Malformed JSON request body -> `400` with a unified error envelope
+- Unknown `workflowId` -> `404` with a unified error envelope

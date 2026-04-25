@@ -1,0 +1,161 @@
+{
+  "workflowId": "demo-ai-pm-workflow",
+  "generatedAt": "2026-04-11T15:00:00Z",
+  "decisionSummary": {
+    "fitLevel": "COMPETITIVE_WITH_GAPS",
+    "recommendedPositioning": "Senior AI Product Manager for enterprise GenAI workflows",
+    "summary": "The candidate is credible for the role because she brings strong B2B SaaS PM fundamentals, experimentation discipline, and cross-functional delivery across workflow products. The main risk is not core product management quality but whether she can sound like a true GenAI platform PM rather than a PM who has shipped AI-adjacent features.",
+    "recommendedNextMove": "Position aggressively around enterprise workflow PM strengths, then use interview prep to close the platform-depth and governance storytelling gap before final interviews.",
+    "topPriorities": [
+      "Strengthen stories about AI product judgment, especially where AI creates business value versus user noise.",
+      "Prepare a clearer platform narrative around trust, observability, rollout risk, and enterprise controls.",
+      "Translate prior AI-assisted feature work into stronger technical fluency around retrieval, evaluation, and workflow reliability."
+    ]
+  },
+  "jdAnalysis": {
+    "roleTitle": "Senior AI Product Manager",
+    "seniority": "Senior",
+    "summary": "This is a platform-oriented AI PM role at a B2B SaaS company, with emphasis on enterprise credibility, workflow value, admin tooling, and product judgment around model-powered systems.",
+    "mustHaveRequirements": [
+      "Product strategy ownership for a technical or platform product",
+      "Strong cross-functional execution across engineering, design, data, and go-to-market",
+      "Metrics and experimentation fluency",
+      "Evidence of AI or LLM product exposure",
+      "Comfort translating ambiguous technical problems into product decisions",
+      "Strong communication with both technical and executive stakeholders"
+    ],
+    "niceToHaveRequirements": [
+      "Direct GenAI platform or LLM product experience",
+      "Enterprise governance, privacy, or admin-control familiarity",
+      "B2B SaaS experience",
+      "Comfort discussing retrieval, quality, latency, reliability, and safety tradeoffs"
+    ],
+    "keywords": [
+      "enterprise AI copilot",
+      "GenAI platform",
+      "workflow automation",
+      "governance",
+      "observability",
+      "trust",
+      "model-powered workflows",
+      "product strategy"
+    ],
+    "interviewFocusAreas": [
+      "AI product judgment",
+      "enterprise rollout risk",
+      "metrics and experimentation",
+      "technical fluency with model-powered systems",
+      "cross-functional leadership"
+    ]
+  },
+  "candidateAnalysis": {
+    "candidateHeadline": "Strong enterprise SaaS PM with real workflow and AI-adjacent shipping experience",
+    "summary": "The candidate has strong product execution fundamentals and credible AI feature exposure. Her biggest asset is not pure GenAI depth but her ability to connect customer discovery, metrics, and enterprise workflow adoption into a strong product narrative.",
+    "strengths": [
+      "Strong cross-functional execution and roadmap ownership",
+      "Clear metrics and experimentation orientation",
+      "Experience shipping workflow products in enterprise SaaS contexts",
+      "Some AI-assisted product launch experience with trust and approval considerations",
+      "Strong communication and executive alignment skills"
+    ],
+    "evidence": [
+      "Led AI-assisted workflow and agent-assist roadmap work",
+      "Defined activation, adoption, workflow completion, and deflection metrics",
+      "Ran customer discovery with enterprise admins around trust and approval needs",
+      "Worked closely with engineering and applied teams on product requirements",
+      "Improved onboarding conversion through experimentation"
+    ],
+    "missingSignals": [
+      "No strong proof of owning a core LLM platform or GenAI infrastructure layer",
+      "Limited explicit examples of evaluation, orchestration, or observability frameworks",
+      "Enterprise governance depth is present but not deeply developed",
+      "Technical storytelling may not yet sound platform-level in senior AI PM interviews"
+    ],
+    "likelyFitAreas": [
+      "AI-assisted workflow products",
+      "enterprise admin tooling and trust UX",
+      "B2B AI application strategy",
+      "cross-functional platform-adjacent roadmap leadership"
+    ]
+  },
+  "gapAnalysis": {
+    "overallAssessment": "COMPETITIVE_WITH_GAPS",
+    "matchNarrative": "The candidate fits the role on PM fundamentals, enterprise SaaS context, and workflow product execution. The main weakness is whether she can prove platform-level AI judgment and speak fluently about governance, evaluation, and reliability in a way that reassures a hiring panel for a Senior AI PM role.",
+    "matchingStrengths": [
+      "Strong enterprise PM fundamentals",
+      "Clear execution across engineering, analytics, and go-to-market",
+      "Relevant workflow and admin-tooling intuition",
+      "AI product exposure that can be positioned upward"
+    ],
+    "priorityGaps": [
+      {
+        "requirement": "Deep AI/LLM platform strategy credibility",
+        "candidateEvidence": "Has shipped AI-assisted features, but not an end-to-end GenAI platform product",
+        "gapLevel": "HIGH",
+        "recommendation": "Reframe past AI work in terms of platform decisions, model-powered workflow value, and enterprise adoption constraints."
+      },
+      {
+        "requirement": "Enterprise governance and trust depth",
+        "candidateEvidence": "Some approval-control and admin-trust exposure, but limited governance ownership",
+        "gapLevel": "MEDIUM",
+        "recommendation": "Prepare specific examples around rollout guardrails, admin controls, trust UX, and how product decisions reduce enterprise risk."
+      },
+      {
+        "requirement": "Technical fluency with model-powered systems",
+        "candidateEvidence": "Comfortable with product-level AI concepts, but fewer clear platform-level examples",
+        "gapLevel": "MEDIUM",
+        "recommendation": "Practice concise explanations of retrieval quality, evaluation loops, latency, reliability, and why they matter to user value."
+      }
+    ],
+    "positioningAdvice": [
+      "Lead with enterprise workflow and product judgment strengths before addressing platform depth.",
+      "Use AI-assisted feature launches as proof of real-world AI product execution, not as side projects.",
+      "Frame yourself as a PM who understands how trust, controls, and adoption determine enterprise AI success."
+    ]
+  },
+  "interviewPrep": {
+    "prepSummary": "The best prep path is to preserve the candidate's strong PM foundation while upgrading how she tells AI platform stories. She should sound like someone who can prioritize enterprise GenAI workflows responsibly, not just someone who shipped a few AI features.",
+    "technicalFocusAreas": [
+      "Retrieval quality versus user trust",
+      "Evaluation loops and qualitative feedback in AI product iteration",
+      "Latency, reliability, and observability tradeoffs for enterprise AI workflows",
+      "Admin controls, approvals, and rollout guardrails",
+      "How to prioritize AI platform capabilities against customer workflow value"
+    ],
+    "behavioralQuestionPrompts": [
+      "Tell me about a time you turned an ambiguous technical problem into a product decision.",
+      "Describe how you decided whether an AI feature should be automated, assisted, or human-reviewed.",
+      "Give an example of balancing customer demand with platform readiness or trust risk.",
+      "How have you aligned engineering and go-to-market teams around a technically complex roadmap?"
+    ],
+    "resumeDefensePoints": [
+      "Your workflow product experience is highly relevant because enterprise AI adoption often succeeds or fails at the workflow layer.",
+      "Your experimentation and metrics discipline is a strength because AI products require tight iteration loops and credibility with adoption data.",
+      "Your admin-tooling and trust-related experience can be positioned as early evidence of governance instincts."
+    ],
+    "prepPlan": [
+      "Day 1-2: Rewrite your story around enterprise AI workflow value, trust, and adoption.",
+      "Day 3: Build two strong examples showing AI product judgment under uncertainty.",
+      "Day 4: Prepare one governance/trust story and one technical fluency story.",
+      "Day 5: Reframe resume bullets to highlight AI strategy, platform adjacency, and enterprise credibility.",
+      "Day 6-7: Run mock interviews focused on AI PM judgment, technical fluency, and executive communication."
+    ],
+    "companyResearchSuggestions": [
+      "Study how enterprise AI vendors describe trust, governance, and observability in their platform messaging.",
+      "Prepare a view on which GenAI workflow problems create durable product value versus temporary feature hype.",
+      "Look for signals about Northstar Cloud's likely buyers, admins, and rollout constraints so you can speak concretely about adoption."
+    ]
+  },
+  "nextSteps": [
+    "Reframe the candidate story around enterprise AI workflow ownership and product judgment.",
+    "Prepare concrete narratives around trust, admin controls, and rollout risk.",
+    "Upgrade technical fluency answers on retrieval, evaluation, reliability, and observability.",
+    "Use support chat to turn the top gaps into a focused 7-day prep plan."
+  ],
+  "supportCapabilities": [
+    "Use workflow-linked support chat to explain why each gap matters and how to close it.",
+    "Ask the agent to turn priority gaps into a day-by-day prep plan.",
+    "Use support chat to improve AI PM positioning and resume framing for the target role.",
+    "Use RAG and company research support to enrich interview stories with enterprise AI context."
+  ]
+}

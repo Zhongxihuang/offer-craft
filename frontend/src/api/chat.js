@@ -1,21 +1,34 @@
 import { API_BASE_URL } from './index'
+import { getCurrentLocale } from '../i18n'
 
 /**
  * Create an SSE connection for chat streaming
  * @param {number} memoryId - The session memory ID
  * @param {string} message - The user's message
  * @param {Object} callbacks - Callback functions for handling events
+ * @param {Object} [options] - Optional chat context
  * @param {Function} callbacks.onMessage - Called when a new chunk is received
  * @param {Function} callbacks.onError - Called when an error occurs
  * @param {Function} callbacks.onComplete - Called when the stream ends
  * @returns {EventSource} - The EventSource instance for cleanup
  */
-export function createChatStream(memoryId, message, callbacks) {
+export function createChatStream(memoryId, message, callbacks, options = {}) {
   const { onMessage, onError, onComplete } = callbacks
-  
-  // Properly encode the message for URL
-  const encodedMessage = encodeURIComponent(message)
-  const url = `${API_BASE_URL}/ai/chat?memoryId=${memoryId}&message=${encodedMessage}`
+  const params = new URLSearchParams({
+    memoryId: String(memoryId),
+    message
+  })
+
+  if (typeof options.workflowId === 'string' && options.workflowId.trim()) {
+    params.set('workflowId', options.workflowId.trim())
+  }
+
+  const locale = typeof options.locale === 'string' && options.locale.trim()
+    ? options.locale.trim()
+    : getCurrentLocale()
+  params.set('locale', locale)
+
+  const url = `${API_BASE_URL}/ai/chat?${params.toString()}`
   
   const eventSource = new EventSource(url)
   
@@ -38,7 +51,7 @@ export function createChatStream(memoryId, message, callbacks) {
       onComplete()
     } else {
       // Actual error occurred
-      onError(new Error('Connection lost, please retry.'))
+      onError(new Error(options.errorMessage || 'Connection lost, please retry.'))
     }
   }
   

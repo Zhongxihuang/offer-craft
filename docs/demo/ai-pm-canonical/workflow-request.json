@@ -1,0 +1,14 @@
+{
+  "targetRole": "Senior AI Product Manager",
+  "targetLevel": "Senior",
+  "companyName": "Northstar Cloud",
+  "jobDescription": "Northstar Cloud is building an enterprise AI copilot platform used by operations, support, and revenue teams. The platform combines retrieval, orchestration, and workflow automation to help large companies deploy domain-specific copilots with governance, observability, and security controls. We are hiring a Senior AI Product Manager to lead the product strategy and execution for our GenAI platform layer. This person will own the roadmap for model-powered workflows, admin controls, trust features, and platform adoption across enterprise customers. Must-haves include 5+ years of PM experience, platform or technical product ownership, strong experimentation and metrics skills, demonstrated AI/LLM product interest, close partnership with engineering on ambiguous technical problems, and strong communication with technical and executive stakeholders. Preferred signals include direct LLM product or platform experience, enterprise governance familiarity, B2B SaaS background, and comfort discussing retrieval quality, latency, reliability, and safety tradeoffs.",
+  "candidateProfile": "Maya Patel is a Senior Product Manager with strong B2B SaaS, analytics, and experimentation experience. She has led workflow automation and AI-assisted feature roadmaps for support and operations products, defined adoption and deflection metrics, and partnered with engineering, data science, design, and GTM teams. She has customer discovery experience with enterprise admins and has worked on trust and approval controls. Her background is strong in cross-functional execution, product judgment, and metrics, but she has less direct ownership of a core LLM platform, limited explicit governance depth, and fewer highly technical stories around model evaluation, orchestration, and reliability.",
+  "focusAreas": [
+    "AI product strategy",
+    "gap analysis",
+    "interview prep",
+    "resume framing"
+  ],
+  "includeCompanyResearch": true
+}

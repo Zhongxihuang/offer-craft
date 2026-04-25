@@ -1,0 +1,98 @@
+[
+  {
+    "name": "strong-resume-en",
+    "locale": "en",
+    "jobDescription": "Senior AI Product Manager, enterprise GenAI platform. Requirements: own AI/LLM strategy, drive experimentation and KPI loops, partner cross-functionally, improve enterprise trust and governance, explain evaluation and reliability tradeoffs.",
+    "candidateProfile": "Senior Product Manager with 7 years in enterprise SaaS. Led AI assistant launches, owned KPI reviews and experimentation, partnered with legal, security, engineering, and GTM on enterprise admin controls, and can explain retrieval quality, evaluation metrics, and latency tradeoffs.",
+    "includeCompanyResearch": true,
+    "companyName": "Northstar AI",
+    "expectation": {
+      "fitBands": ["STRONG_MATCH", "COMPETITIVE_WITH_GAPS"],
+      "confidenceBands": ["HIGH", "MEDIUM"],
+      "minDecisionDrivers": 3,
+      "minClarificationQuestions": 0,
+      "expectBlockingUncertainties": false,
+      "expectChinese": false
+    }
+  },
+  {
+    "name": "weak-resume-en",
+    "locale": "en",
+    "jobDescription": "Senior AI Product Manager, enterprise GenAI platform. Requirements: own AI/LLM strategy, drive experimentation and KPI loops, partner cross-functionally, improve enterprise trust and governance, explain evaluation and reliability tradeoffs.",
+    "candidateProfile": "Operations assistant focused on schedules, follow-up notes, and vendor coordination. Comfortable with spreadsheets and meeting logistics. No shipped product ownership, no technical build history, and no measurable experimentation record.",
+    "includeCompanyResearch": true,
+    "companyName": "Northstar AI",
+    "expectation": {
+      "fitBands": ["LOW_MATCH", "STRETCH", "COMPETITIVE_WITH_GAPS"],
+      "confidenceBands": ["LOW", "MEDIUM"],
+      "minDecisionDrivers": 2,
+      "minClarificationQuestions": 2,
+      "expectBlockingUncertainties": true,
+      "expectChinese": false
+    }
+  },
+  {
+    "name": "incomplete-jd-en",
+    "locale": "en",
+    "jobDescription": "AI PM role. Work on AI products. Fast experiments.",
+    "candidateProfile": "Senior Product Manager with enterprise SaaS experience, experimentation ownership, and early AI product exposure.",
+    "includeCompanyResearch": false,
+    "companyName": null,
+    "expectation": {
+      "fitBands": ["STRONG_MATCH", "COMPETITIVE_WITH_GAPS", "STRETCH"],
+      "confidenceBands": ["LOW", "MEDIUM"],
+      "minDecisionDrivers": 2,
+      "minClarificationQuestions": 1,
+      "expectBlockingUncertainties": true,
+      "expectChinese": false
+    }
+  },
+  {
+    "name": "incomplete-resume-en",
+    "locale": "en",
+    "jobDescription": "Senior AI Product Manager, enterprise GenAI platform. Requirements: own AI/LLM strategy, drive experimentation and KPI loops, partner cross-functionally, improve enterprise trust and governance, explain evaluation and reliability tradeoffs.",
+    "candidateProfile": "PM intern. Worked on some product tasks.",
+    "includeCompanyResearch": false,
+    "companyName": null,
+    "expectation": {
+      "fitBands": ["LOW_MATCH", "STRETCH", "COMPETITIVE_WITH_GAPS"],
+      "confidenceBands": ["LOW", "MEDIUM"],
+      "minDecisionDrivers": 2,
+      "minClarificationQuestions": 2,
+      "expectBlockingUncertainties": true,
+      "expectChinese": false
+    }
+  },
+  {
+    "name": "degraded-company-research-en",
+    "locale": "en",
+    "jobDescription": "Senior AI Product Manager, enterprise GenAI platform. Requirements: own AI/LLM strategy, drive experimentation and KPI loops, partner cross-functionally, improve enterprise trust and governance, explain evaluation and reliability tradeoffs.",
+    "candidateProfile": "Senior Product Manager with 7 years in enterprise SaaS. Led AI assistant launches, owned KPI reviews and experimentation, and partnered cross-functionally on enterprise rollout quality.",
+    "includeCompanyResearch": true,
+    "companyName": "Northstar AI",
+    "expectation": {
+      "fitBands": ["STRONG_MATCH", "COMPETITIVE_WITH_GAPS"],
+      "confidenceBands": ["HIGH", "MEDIUM"],
+      "minDecisionDrivers": 3,
+      "minClarificationQuestions": 1,
+      "expectBlockingUncertainties": true,
+      "expectChinese": false
+    }
+  },
+  {
+    "name": "specific-zh",
+    "locale": "zh-CN",
+    "jobDescription": "AI 产品经理校招岗位。需要理解 AI 产品、做过实验、能快速做 Demo，并参与过真实用户场景的 AI 应用落地。",
+    "candidateProfile": "做过 AI 产品定义、RAG、Agent 架构和实验设计，也有跨团队推进和 Demo 落地经验。",
+    "includeCompanyResearch": true,
+    "companyName": "美团",
+    "expectation": {
+      "fitBands": ["STRONG_MATCH", "COMPETITIVE_WITH_GAPS", "STRETCH"],
+      "confidenceBands": ["MEDIUM", "LOW", "HIGH"],
+      "minDecisionDrivers": 2,
+      "minClarificationQuestions": 1,
+      "expectBlockingUncertainties": true,
+      "expectChinese": true
+    }
+  }
+]

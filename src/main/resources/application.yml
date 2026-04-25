@@ -1,8 +1,28 @@
 spring:
   application:
     name: code-forge-ai
+  autoconfigure:
+    exclude:
+      - dev.langchain4j.community.dashscope.spring.AutoConfig
   profiles:
     active: local
+  datasource:
+    url: jdbc:h2:file:./data/codeforge-ai-db;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
 
 server:
   port: 8081
@@ -24,3 +44,10 @@ langchain4j:
 
 bigmodel:
   api-key: ${BIGMODEL_API_KEY:}
+
+career:
+  ai:
+    mode: provider
+  workflow:
+    storage:
+      upload-root: ./data/uploads

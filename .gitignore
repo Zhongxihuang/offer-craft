@@ -1,6 +1,8 @@
 HELP.md
 
-application-local.yml
+/data/
+/frontend/dist/
+/frontend/node_modules/
 
 target/
 .mvn/wrapper/maven-wrapper.jar

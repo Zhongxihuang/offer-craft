@@ -1,15 +1,11 @@
 /* ============================================
-   Code Forge AI - Main Styles
-   Color Palette (SaaS Trust Blue):
-   - Primary: #2563EB
-   - Secondary: #3B82F6
-   - CTA: #F97316
-   - Background: #F8FAFC
-   - Text: #1E293B
-   - Border: #E2E8F0
+   Career Agent - Executive SaaS UI System
+   Brand direction:
+   - Ink-led executive palette
+   - Teal for workflow/action emphasis
+   - Amber for insight and caution
    ============================================ */
 
-/* CSS Reset */
 *,
 *::before,
 *::after {
@@ -18,67 +14,80 @@
   padding: 0;
 }
 
-/* Root Variables */
 :root {
-  /* Colors */
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-secondary: #3B82F6;
-  --color-cta: #F97316;
-  --color-cta-hover: #EA580C;
-  --color-background: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-text: #1E293B;
-  --color-text-muted: #475569;
-  --color-text-light: #64748B;
-  --color-border: #E2E8F0;
-  --color-error: #DC2626;
-  --color-error-bg: #FEF2F2;
-  --color-user-bubble: #2563EB;
-  --color-ai-bubble: #FFFFFF;
-  
-  /* Typography */
-  --font-heading: 'Poppins', sans-serif;
-  --font-body: 'Open Sans', sans-serif;
-  
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
+  --color-primary: #10263d;
+  --color-primary-hover: #0b1d31;
+  --color-secondary: #147c83;
+  --color-secondary-hover: #0f666c;
+  --color-accent: #ba7c37;
+  --color-accent-soft: #ecd8b8;
+  --color-background: #f4f2ec;
+  --color-background-strong: #ebe6de;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fbfaf7;
+  --color-surface-emphasis: #f2ede4;
+  --color-surface-contrast: #f5f7fa;
+  --color-text: #15263a;
+  --color-text-muted: #48596d;
+  --color-text-light: #738397;
+  --color-text-subtle: #8c99a8;
+  --color-border: #d8dfE6;
+  --color-border-strong: #bcc7d2;
+  --color-error: #b44848;
+  --color-error-bg: #f9eceb;
+  --color-success: #187257;
+  --color-success-bg: #e9f5ef;
+  --color-warning: #9a672b;
+  --color-warning-bg: #fbf3e8;
+  --color-user-bubble: #10263d;
+  --color-ai-bubble: #ffffff;
+
+  --font-heading: 'Manrope', sans-serif;
+  --font-body: 'Source Sans 3', sans-serif;
+
+  --spacing-2xs: 2px;
+  --spacing-xs: 6px;
+  --spacing-sm: 10px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
-  
-  /* Border Radius */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 88px;
+
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-xl: 34px;
   --radius-full: 9999px;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  
-  /* Transitions */
+
+  --shadow-sm: 0 12px 30px -24px rgba(16, 38, 61, 0.24);
+  --shadow-md: 0 24px 60px -34px rgba(16, 38, 61, 0.2);
+  --shadow-lg: 0 42px 90px -46px rgba(16, 38, 61, 0.22);
+
   --transition-fast: 150ms ease;
-  --transition-normal: 200ms ease;
-  --transition-slow: 300ms ease;
+  --transition-normal: 220ms ease;
+  --transition-slow: 320ms ease;
+
+  --shell-width: 1240px;
 }
 
-/* Base Styles */
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-body);
-  background-color: var(--color-background);
-  color: var(--color-text);
-  line-height: 1.6;
   min-height: 100vh;
+  line-height: 1.6;
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(20, 124, 131, 0.08), transparent 26%),
+    radial-gradient(circle at 100% 0%, rgba(186, 124, 55, 0.08), transparent 24%),
+    linear-gradient(180deg, #faf8f4 0%, var(--color-background) 38%, #eeebe4 100%);
 }
 
 #app {
@@ -87,36 +96,61 @@ body {
   flex-direction: column;
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
-  font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--color-primary);
 }
 
-h1 { font-size: 2rem; }
-h2 { font-size: 1.5rem; }
-h3 { font-size: 1.25rem; }
+h1 {
+  font-size: clamp(2.6rem, 5vw, 4.5rem);
+  font-weight: 800;
+}
 
-/* Button Reset */
+h2 {
+  font-size: clamp(1.8rem, 2.6vw, 2.9rem);
+  font-weight: 800;
+}
+
+h3 {
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  font-weight: 700;
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+p,
+li,
+label,
+input,
+textarea,
 button {
-  font-family: inherit;
-  font-size: inherit;
+  font-family: var(--font-body);
+}
+
+button {
   border: none;
   background: none;
   cursor: pointer;
-  outline: none;
+  font-size: inherit;
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.65;
 }
 
-/* Input Reset */
 input,
 textarea {
-  font-family: inherit;
   font-size: inherit;
   border: none;
   outline: none;
@@ -127,9 +161,27 @@ textarea {
   resize: none;
 }
 
-/* Scrollbar Styling */
+a {
+  color: inherit;
+}
+
+strong {
+  font-weight: 700;
+}
+
+::selection {
+  background-color: rgba(16, 38, 61, 0.92);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(20, 124, 131, 0.92);
+  outline-offset: 2px;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
@@ -137,15 +189,14 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
   border-radius: var(--radius-full);
+  background-color: rgba(115, 131, 151, 0.58);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-text-light);
+  background-color: rgba(72, 89, 109, 0.72);
 }
 
-/* Utility Classes */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -156,43 +207,4 @@ textarea {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
-}
-
-/* Focus Visible */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* Selection */
-::selection {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-/* Animations */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
 }

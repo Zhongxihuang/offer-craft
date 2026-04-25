@@ -1,0 +1,3 @@
+career:
+  ai:
+    mode: ${CAREER_AI_MODE:demo}
