@@ -1,206 +1,261 @@
 <div align="center">
 
-# AI Career Decision & Interview Prep Agent
+# OfferCraft
 
-### Workflow-first career decision agent for JD fit, Top 3 gaps, and interview prep
+**Turn a job description and a resume into an actionable career decision and interview preparation plan.**
+
+OfferCraft helps candidates decide whether a role is worth applying to, identify the gaps that matter most, and turn those gaps into short-term preparation actions.
 
 [![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5.9-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-2B6CB0)](https://docs.langchain4j.dev/)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Quick Local Demo](#quick-local-demo) | [Core Workflow](#core-workflow) | [API](#api) | [Security Defaults](#security-defaults) | [Portfolio Materials](#portfolio-materials)
+[中文文档](README-zh-CN.md) | [Demo](#demo) | [Local Run](#local-run) | [API](#api)
 
 </div>
 
-## What Problem This Solves
+---
 
-很多候选人看到 AI 产品、平台产品或 GenAI 相关岗位时，真正卡住的不是“问 AI 一个问题”，而是下面这条决策链：
+## What is OfferCraft?
 
-1. 这份 JD 到底在招什么能力？
-2. 我的简历证据够不够支撑这些要求？
-3. 我该不该投，还是应该先补表达或先准备？
-4. 最影响结果的 Top 3 gaps 是什么？
-5. 接下来 3-7 天应该具体做什么？
+For many candidates, the hard part is not getting a generic piece of advice. The harder question is whether a role is worth the effort, which gaps matter most, and what to prepare in the next few days.
 
-这个项目不是泛聊天助手，而是把 **JD 解析 -> 候选人分析 -> Gap 排序 -> 面试准备 -> 结果追问/更新** 做成一个可复用的 workflow。
+OfferCraft organizes that task into a staged workflow. It first understands the role, then analyzes candidate evidence, ranks the most important gaps, generates an apply recommendation, and supports follow-up refinement.
 
-## Why This Is An Agent, Not Just A Chatbot
+The current demo and evaluation cases focus on AI product, product management, AI application, and technical roles because these roles require a visible mix of business judgment, technical fluency, project evidence, and interview storytelling. The workflow itself can accept any job description and candidate profile.
 
-The application uses typed, staged workflow agents:
+## Core Outputs
 
-1. `JD Parsing Agent` extracts role signals, must-haves, keywords, and interview themes.
-2. `Candidate Analysis Agent` structures strengths, evidence, and missing signals from a resume or profile.
-3. `Gap Analysis Agent` ranks the gaps by hiring impact, evidence weakness, and interview risk.
-4. `Interview Prep Agent` converts findings into resume framing, mock questions, and a 3-7 day action plan.
-5. `Support Chat` links back to the saved `workflowId`, so follow-up questions continue from the generated artifact instead of starting from zero.
+- **Apply recommendation**: apply now, apply after reframing, prepare first, or redirect effort.
+- **Role requirements**: role direction, must-have requirements, keywords, and interview focus areas.
+- **Candidate evidence**: strengths, transferable experience, missing signals, and risk areas.
+- **Three key gaps**: the most important gaps, why they matter, and how to prepare for them.
+- **Confidence notes**: which conclusions are supported by direct evidence and which need more information.
+- **Preparation plan**: short-term actions that can be completed within 3-7 days.
 
-## Core Workflow
+## Main Capabilities
+
+### 1. Role Understanding
+
+Extracts role positioning, hard requirements, nice-to-have signals, keywords, and interview focus areas from a job description.
+
+### 2. Candidate Analysis
+
+Identifies evidence, transferable strengths, project experience, and missing signals from a resume or candidate profile.
+
+### 3. Gap Ranking
+
+Ranks the three most important gaps by hiring impact, evidence weakness, and interview risk.
+
+### 4. Interview Preparation
+
+Generates short-term preparation actions, resume framing advice, behavioral interview prompts, and risk-focused practice areas.
+
+### 5. Follow-up and Refinement
+
+Users can ask follow-up questions based on a saved analysis, add new evidence, and generate updated versions.
+
+### 6. Upload and Restore
+
+Supports pasted text and PDF/TXT/Markdown uploads. Workflow results are stored in a local database and can be restored after backend restart.
+
+## Product Flow
 
 ```text
-JD parsing -> candidate analysis -> gap analysis -> interview prep generation -> workflow-linked follow-up
+1. Paste or upload a job description
+2. Paste or upload a resume / candidate profile
+3. Add target role, level, company, and focus areas
+4. Run the analysis
+5. Review apply recommendation, key gaps, confidence, and prep plan
+6. Ask follow-up questions or refine the analysis with more information
 ```
 
-The main output bundle includes:
+## Design Principles
 
-- apply verdict: apply now, reframe first, prep first, or redirect effort
-- JD must-haves and interview focus areas
-- candidate strengths, evidence, and missing signals
-- Top 3 gaps that most affect the outcome
-- why each gap matters, evidence weakness, and prep action
-- confidence summary and clarification questions
-- 3-7 day preparation checklist
-- optional company research suggestions when provider tools are available
+- **Workflow first**: generate a structured analysis before follow-up conversation.
+- **Evidence first**: expose supporting evidence, missing signals, and confidence notes.
+- **Action first**: turn gaps into concrete preparation tasks.
+- **Local first**: run the core demo without external model keys.
+- **Extensible**: search, retrieval, and tool calling are enhancements, not blockers for the core workflow.
 
-## Quick Local Demo
+<a id="demo"></a>
 
-The default local profile is demo-friendly. You can run the full workflow without provider keys.
+## Demo
 
-### Backend
+The repository includes a reproducible demo scenario for quickly testing the full workflow.
+
+**Canonical scenario**: Senior AI Product Manager for an enterprise GenAI product.
+
+This scenario tests requirement extraction, candidate evidence analysis, platform thinking, governance awareness, and interview preparation quality. The candidate has strong product and analytics experience, but visible gaps in LLM platform depth, enterprise AI governance, and technical storytelling.
+
+### Demo Assets
+
+| File | Purpose |
+|---|---|
+| [job-description.md](docs/demo/ai-pm-canonical/job-description.md) | Sample job description |
+| [candidate-resume.md](docs/demo/ai-pm-canonical/candidate-resume.md) | Sample candidate profile |
+| [workflow-request.json](docs/demo/ai-pm-canonical/workflow-request.json) | API request example |
+| [workflow-response.sample.json](docs/demo/ai-pm-canonical/workflow-response.sample.json) | Curated sample response |
+| [support-chat-followups.md](docs/demo/ai-pm-canonical/support-chat-followups.md) | Follow-up examples |
+| [demo-script.md](docs/demo/ai-pm-canonical/demo-script.md) | Two-minute demo script |
+
+### Screenshots
+
+- [Intake page](docs/demo/ai-pm-canonical/screenshots/01-intake.png)
+- [Workflow result](docs/demo/ai-pm-canonical/screenshots/02-workflow-result.png)
+- [Follow-up chat](docs/demo/ai-pm-canonical/screenshots/03-support-chat.png)
+
+The current version is designed for local demonstration. A public hosted demo is not available yet.
+
+<a id="local-run"></a>
+
+## Local Run
+
+### Requirements
+
+- JDK 21
+- Maven 3.9+
+- Node.js 18+
+- npm
+
+### Start the Backend
+
+The default local mode does not require external model keys.
+
+Windows PowerShell:
 
 ```powershell
 $env:JAVA_HOME="C:\Program Files\Java\jdk-21"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
+
 mvn.cmd "-Dmaven.repo.local=.m2\repository" test
 mvn.cmd spring-boot:run
 ```
 
-The backend runs at `http://localhost:8081/api` and uses:
+macOS / Linux:
 
-- `career.ai.mode=demo`
-- H2 file database under `./data`
-- local upload storage under `./data/uploads`
-- no external model, RAG, or search key requirement
+```bash
+mvn test
+mvn spring-boot:run
+```
 
-### Frontend
+Backend URL:
 
-```powershell
+```text
+http://localhost:8081/api
+```
+
+### Start the Frontend
+
+```bash
 cd frontend
-npm.cmd install
-npm.cmd run dev
+npm install
+npm run dev
 ```
 
-Open `http://localhost:5173`.
+Frontend URL:
 
-Recommended live demo:
-
-1. Open [docs/demo/ai-pm-canonical/job-description.md](docs/demo/ai-pm-canonical/job-description.md).
-2. Open [docs/demo/ai-pm-canonical/candidate-resume.md](docs/demo/ai-pm-canonical/candidate-resume.md).
-3. Paste both into the workflow form and run analysis.
-4. Review apply verdict, confidence, Top 3 gaps, and 3-7 day action plan.
-5. Click support chat and ask: `把 Top 3 gaps 转成 7 天准备计划`.
-
-Static portfolio artifact:
-
-- [workflow-request.json](docs/demo/ai-pm-canonical/workflow-request.json)
-- [workflow-response.sample.json](docs/demo/ai-pm-canonical/workflow-response.sample.json)
-- [support-chat-followups.md](docs/demo/ai-pm-canonical/support-chat-followups.md)
-- [demo-script.md](docs/demo/ai-pm-canonical/demo-script.md)
-
-Live model/provider results may vary; `workflow-response.sample.json` is the canonical portfolio artifact.
-
-## Windows JDK 21 Notes
-
-If the Maven wrapper is unavailable or broken on Windows, use `mvn.cmd` directly.
-
-```powershell
-$env:JAVA_HOME="C:\Program Files\Java\jdk-21"
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
-java -version
-mvn.cmd -version
-mvn.cmd compile
-mvn.cmd "-Dmaven.repo.local=.m2\repository" test
+```text
+http://localhost:5173
 ```
 
-Using `-Dmaven.repo.local=.m2\repository` keeps dependencies inside the project workspace and avoids user-level Maven repository permission issues.
+### Try the Demo
 
-## Provider Mode
+1. Open the frontend.
+2. Use the sample job description and candidate profile.
+3. Run the analysis.
+4. Review the apply recommendation, key gaps, confidence notes, and preparation plan.
+5. Continue with follow-up questions such as a 7-day preparation plan, resume framing, or mock interview prompts.
 
-Provider mode enables real model and optional search/RAG capabilities.
+## Configuration
+
+### Local Demo Mode
+
+The local profile uses demo mode by default. It does not require external provider keys and can run the main workflow immediately.
+
+### Provider Mode
+
+To connect to a real model provider:
+
+| Variable | Required | Description |
+|---|---|---|
+| `CAREER_AI_MODE` | optional | `demo` or `provider` |
+| `DASHSCOPE_API_KEY` | required in provider mode | DashScope / Qwen model key |
+| `BIGMODEL_API_KEY` | optional | Optional key for web search enhancement |
+
+Windows PowerShell:
 
 ```powershell
 $env:CAREER_AI_MODE="provider"
 $env:DASHSCOPE_API_KEY="your_dashscope_key"
 $env:BIGMODEL_API_KEY="optional_search_key"
-$env:CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN="true"
-$env:CAREER_WORKFLOW_READ_TOKEN="a_restore_token"
 mvn.cmd spring-boot:run
 ```
 
-Provider mode requires `DASHSCOPE_API_KEY`. Search/RAG/MCP are enhancement layers: when unavailable, the workflow should still return a useful result with visible fallback notes.
+### Runtime and Security Settings
 
-## Security Defaults
+| Variable | Default | Description |
+|---|---|---|
+| `CAREER_WEB_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Allowed frontend origins |
+| `CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN` | local: `false`, base config: `true` | Protect restore, refine, and version endpoints |
+| `CAREER_WORKFLOW_READ_TOKEN` | empty | Token used by `X-Workflow-Access-Token` |
+| `CAREER_WORKFLOW_MAX_EXTRACTED_TEXT_CHARS` | `200000` | Maximum extracted text length per document |
+| `SPRING_H2_CONSOLE_ENABLED` | `false` | H2 console switch |
 
-This is still a portfolio MVP, but the launch-readiness pass adds production-adjacent guardrails:
-
-- CORS origins are configured through `career.web.allowed-origins`.
-- CORS methods are limited to the currently used API methods: `GET`, `POST`, and `OPTIONS`.
-- H2 console is disabled by default, including local demo mode. If you need it for debugging, set `SPRING_H2_CONSOLE_ENABLED=true` locally only.
-- `./data`, `target`, `.m2`, `frontend/dist`, and `frontend/node_modules` are ignored.
-- Uploads are limited to PDF, TXT, and MD.
-- Uploaded file names reject control characters and overly long names.
-- Extracted document text is capped by `CAREER_WORKFLOW_MAX_EXTRACTED_TEXT_CHARS` to reduce accidental oversized payloads.
-- Text extraction rejects image-only PDFs because OCR is out of scope for v1.
-- Uploaded file paths are normalized and must stay inside `./data/uploads/{workflowId}`.
-- Restore endpoints can require `X-Workflow-Access-Token` when `CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN=true`.
-- When workflow token protection is enabled, startup fails if `CAREER_WORKFLOW_READ_TOKEN` is missing.
-- MCP request/response logging is disabled by default to avoid leaking provider keys, prompts, JD text, or resume text.
-
-## Known Limitations
-
-- No account system or multi-user tenant model yet.
-- Restore is latest-workflow based on localStorage plus persisted backend result.
-- Uploaded PDFs must contain extractable text; OCR is not supported.
-- Provider quality depends on available model/search credentials.
-- Support chat history is session memory, not a persisted conversation store.
-- This is not an auto-apply tool; it stops at decision support and interview preparation.
+<a id="api"></a>
 
 ## API
 
-Base path: `http://localhost:8081/api`
+Base URL:
 
-### `POST /career/workflow/analyze`
+```text
+http://localhost:8081/api
+```
 
-Runs the JSON text workflow.
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/career/workflow/analyze` | Analyze pasted job description and resume/profile |
+| `POST` | `/career/workflow/analyze-upload` | Analyze uploaded PDF/TXT/Markdown inputs |
+| `POST` | `/career/workflow/compare` | Compare 2-5 target roles |
+| `GET` | `/career/workflow/{workflowId}` | Restore a saved workflow |
+| `GET` | `/career/workflow/{workflowId}/versions` | List workflow versions |
+| `POST` | `/career/workflow/{workflowId}/refine` | Refine an existing workflow |
+| `GET` | `/ai/chat` | Streaming follow-up chat |
+
+### Text Analysis Example
 
 ```json
 {
-  "locale": "zh-CN",
-  "targetRole": "AI 产品经理",
-  "targetLevel": "实习生",
-  "companyName": "美团",
-  "jobDescription": "粘贴 JD...",
-  "candidateProfile": "粘贴简历或候选人背景...",
-  "focusAreas": ["面试策略", "技术理解"],
+  "locale": "en",
+  "targetRole": "AI Product Manager",
+  "targetLevel": "Intern",
+  "companyName": "Example Company",
+  "jobDescription": "Paste job description here...",
+  "candidateProfile": "Paste resume or candidate profile here...",
+  "focusAreas": ["interview strategy", "technical fluency"],
   "includeCompanyResearch": true
 }
 ```
 
-### `POST /career/workflow/analyze-upload`
+### Upload Analysis Example
 
-Runs the same workflow with multipart intake. Each slot must provide pasted text or a file; when both are provided, the file wins.
-
-Supported files: `.pdf`, `.txt`, `.md`.
-
-### `POST /career/workflow/compare`
-
-Compares 2-5 target roles against the same candidate profile and returns a ranked shortlist.
-
-### `GET /career/workflow/{workflowId}`
-
-Restores a persisted workflow result. In token-protected mode, include:
-
-```http
-X-Workflow-Access-Token: your_restore_token
+```powershell
+curl.exe -X POST "http://localhost:8081/api/career/workflow/analyze-upload" `
+  -F "locale=en" `
+  -F "targetRole=AI Product Manager" `
+  -F "jobDescriptionText=Paste job description here" `
+  -F "candidateProfileFile=@docs/demo/ai-pm-canonical/candidate-resume.md;type=text/markdown"
 ```
 
-### `GET /api/ai/chat`
+### Follow-up Example
 
-Streaming support chat. When `workflowId` is passed, the answer is grounded in the saved workflow artifact.
+```text
+GET /api/ai/chat?memoryId=demo-1&workflowId={workflowId}&locale=en&message=Turn the most important gaps into a 7-day prep plan
+```
 
-## Error Envelope
-
-Errors use a stable JSON envelope:
+### Error Envelope
 
 ```json
 {
@@ -218,68 +273,119 @@ Errors use a stable JSON envelope:
 }
 ```
 
-Frontend localized handling covers `400`, `403`, `404`, `413`, `415`, `429`, `500`, and network errors.
+## Tech Stack
+
+| Layer | Stack |
+|---|---|
+| Frontend | Vue 3, Vite, vue-i18n, Axios, EventSource |
+| Backend | Java 21, Spring Boot 3.5, Spring MVC, Spring Data JPA |
+| AI Orchestration | LangChain4j typed AI services, staged workflow orchestration |
+| Model Runtime | Local deterministic demo mode, DashScope / Qwen provider mode |
+| Retrieval and Tools | Optional RAG, MCP web search, tool calling |
+| Persistence | H2 file database, local upload storage |
+| Validation | Jakarta Validation, unified API error envelope |
+| Testing | JUnit 5, WebMvcTest, Spring Boot integration tests, demo outcome eval |
 
 ## Architecture
 
 ```text
-Vue 3 Frontend
-  -> Workflow intake / result workspace / support chat
-  -> Axios JSON + multipart API calls
-  -> EventSource streaming chat
-
-Spring Boot Backend
-  -> CareerWorkflowController
-  -> CareerWorkflowApplicationService
-  -> CareerWorkflowOrchestrator
-  -> JD / Candidate / Gap / Interview Prep AI services
-  -> WorkflowSessionStore
-  -> H2 persistence + local upload storage
+Vue frontend
+  -> Spring Boot REST API
+    -> Career workflow application service
+      -> Job description parsing
+      -> Candidate analysis
+      -> Gap analysis
+      -> Interview preparation generation
+      -> Confidence and evidence annotation
+    -> H2 workflow persistence
+    -> Local upload storage
+    -> Optional retrieval / search / tool capabilities
 ```
 
-Main packages:
+The workflow is split into stages with clear responsibilities. This makes the output easier to inspect, test, update, and explain than a single free-form response.
 
-- `src/main/java/com/workspace/codeforgeai/career/api`: request/response DTOs and REST controller
-- `src/main/java/com/workspace/codeforgeai/career/workflow`: orchestration, persistence, upload handling, confidence annotation
-- `src/main/java/com/workspace/codeforgeai/career/demo`: local deterministic demo-mode agents
-- `src/main/java/com/workspace/codeforgeai/ai`: chat, RAG, MCP, tools, model configuration
-- `frontend/src/components`: workflow intake, result view, support chat, header
-- `frontend/src/api`: workflow and chat API helpers
+## Project Structure
 
-## Portfolio Materials
+```text
+.
+|-- frontend/
+|   |-- src/api/                 # Frontend API clients
+|   |-- src/components/          # Form, result view, follow-up panel
+|   `-- src/i18n/                # Chinese / English UI copy
+|-- src/main/java/com/workspace/codeforgeai/
+|   |-- ai/                      # Chat, retrieval, tools, model config
+|   |-- career/api/              # Career workflow controller and DTOs
+|   |-- career/demo/             # Local demo-mode implementations
+|   |-- career/jd/               # Job description parsing
+|   |-- career/candidate/        # Candidate analysis
+|   |-- career/gap/              # Gap analysis
+|   |-- career/interview/        # Interview preparation generation
+|   |-- career/workflow/         # Orchestration, persistence, upload, confidence
+|   `-- common/                  # Error envelope and localization support
+|-- src/main/resources/
+|   |-- application.yml
+|   |-- application-local.yml
+|   |-- messages_en.properties
+|   `-- messages_zh_CN.properties
+|-- docs/demo/ai-pm-canonical/   # Demo inputs, sample output, screenshots
+|-- docs/product/                # Product notes, eval cases, demo talk track
+|-- scripts/                     # Local smoke scripts
+|-- pom.xml
+`-- README.md
+```
 
-These docs are written for AI PM / product manager internship interviews:
+## Testing
 
-- [中文 PRD](docs/product/chinese-prd.md)
-- [Outcome eval cases](docs/product/eval-cases.md)
-- [与直接问 ChatGPT 的对比](docs/product/chatgpt-comparison.md)
-- [2 分钟面试讲述](docs/product/interview-talk-track.md)
-- [Launch checklist](docs/product/launch-checklist.md)
+Backend:
 
-Suggested resume framing:
+```bash
+mvn test
+```
 
-> 设计并实现 workflow-first AI Career Agent，将 JD 解析、候选人证据分析、Top 3 gap 排序和 3-7 天面试准备串成闭环，支持文件上传、H2 持久化、中英文切换、workflow-linked support chat 和 demo/provider 双运行模式。
+Frontend:
 
-## Verification
-
-```powershell
-git diff --check
-mvn.cmd compile
-mvn.cmd "-Dmaven.repo.local=.m2\repository" test
+```bash
 cd frontend
-npm.cmd run build
+npm run build
 ```
 
-Manual launch checklist:
+The backend test suite covers controllers, demo-mode integration, upload and persistence, security boundaries, and provider-mode tests that run only when credentials are available.
 
-1. Local demo starts without provider keys.
-2. Text-only workflow returns decision summary, confidence, Top 3 gaps, and prep plan.
-3. Upload workflow works for TXT/MD/PDF with extractable text.
-4. Restore works after backend restart.
-5. Token-protected restore returns `403` without `X-Workflow-Access-Token`.
-6. Support chat follows up with workflow context.
-7. Chinese/English switch updates UI immediately.
+## Security and Limitations
+
+Implemented safeguards:
+
+- CORS origin allowlist.
+- H2 console disabled by default.
+- Upload whitelist for PDF/TXT/Markdown.
+- Upload path normalization and path traversal checks.
+- Extracted text length limits.
+- Optional token protection for restore, refine, and version endpoints.
+- Provider request/response logging disabled by default to avoid leaking prompts or keys.
+
+Current limitations:
+
+- No account system or multi-tenant ownership model yet.
+- H2 and local file storage are intended for local demo and single-node use, not public production.
+- Uploaded files are not virus-scanned or automatically redacted for personal information.
+- Follow-up chat history is not persisted as a full conversation store.
+- Search, retrieval, and tool calling are enhancement capabilities. If unavailable, the core workflow degrades instead of blocking the analysis.
+
+## Roadmap
+
+- Candidate workspace with saved analyses and role comparison history.
+- Stronger follow-up loop where new evidence creates a versioned analysis update.
+- Production-ready storage with PostgreSQL and object storage.
+- Authentication, workflow ownership, file retention, and deletion controls.
+- Larger bilingual evaluation set for output quality and hallucination resistance.
+
+## Related Docs
+
+- [Chinese PRD](docs/product/chinese-prd.md)
+- [Outcome eval cases](docs/product/eval-cases.md)
+- [Demo talk track](docs/product/interview-talk-track.md)
+- [Launch checklist](docs/product/launch-checklist.md)
 
 ## License
 
-This project is open sourced under the [MIT License](LICENSE).
+OfferCraft is open sourced under the [MIT License](LICENSE).
