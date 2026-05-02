@@ -56,3 +56,4 @@ career:
       read-token: ${CAREER_WORKFLOW_READ_TOKEN:}
     storage:
       upload-root: ./data/uploads
+      max-extracted-text-chars: ${CAREER_WORKFLOW_MAX_EXTRACTED_TEXT_CHARS:200000}

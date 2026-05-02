@@ -123,7 +123,7 @@ $env:CAREER_AI_MODE="provider"
 $env:DASHSCOPE_API_KEY="your_dashscope_key"
 $env:BIGMODEL_API_KEY="optional_search_key"
 $env:CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN="true"
-$env:CAREER_WORKFLOW_ACCESS_TOKEN="a_restore_token"
+$env:CAREER_WORKFLOW_READ_TOKEN="a_restore_token"
 mvn.cmd spring-boot:run
 ```
 
@@ -134,13 +134,17 @@ Provider mode requires `DASHSCOPE_API_KEY`. Search/RAG/MCP are enhancement layer
 This is still a portfolio MVP, but the launch-readiness pass adds production-adjacent guardrails:
 
 - CORS origins are configured through `career.web.allowed-origins`.
+- CORS methods are limited to the currently used API methods: `GET`, `POST`, and `OPTIONS`.
 - H2 console is disabled by default, including local demo mode. If you need it for debugging, set `SPRING_H2_CONSOLE_ENABLED=true` locally only.
 - `./data`, `target`, `.m2`, `frontend/dist`, and `frontend/node_modules` are ignored.
 - Uploads are limited to PDF, TXT, and MD.
+- Uploaded file names reject control characters and overly long names.
+- Extracted document text is capped by `CAREER_WORKFLOW_MAX_EXTRACTED_TEXT_CHARS` to reduce accidental oversized payloads.
 - Text extraction rejects image-only PDFs because OCR is out of scope for v1.
 - Uploaded file paths are normalized and must stay inside `./data/uploads/{workflowId}`.
 - Restore endpoints can require `X-Workflow-Access-Token` when `CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN=true`.
-- MCP request/response logging is disabled by default to avoid leaking provider keys.
+- When workflow token protection is enabled, startup fails if `CAREER_WORKFLOW_READ_TOKEN` is missing.
+- MCP request/response logging is disabled by default to avoid leaking provider keys, prompts, JD text, or resume text.
 
 ## Known Limitations
 

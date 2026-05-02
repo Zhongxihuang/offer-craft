@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -26,13 +27,17 @@ public class CareerDocumentUploadService {
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "txt", "md");
     private static final Pattern SAFE_WORKFLOW_ID = Pattern.compile("[A-Za-z0-9_-]{1,128}");
+    private static final int MAX_ORIGINAL_FILENAME_LENGTH = 120;
 
     private final Path uploadRoot;
+    private final int maxExtractedTextChars;
     private final LocalizedMessages localizedMessages;
 
     public CareerDocumentUploadService(@Value("${career.workflow.storage.upload-root:./data/uploads}") String uploadRoot,
+                                       @Value("${career.workflow.storage.max-extracted-text-chars:200000}") int maxExtractedTextChars,
                                        LocalizedMessages localizedMessages) {
         this.uploadRoot = Path.of(uploadRoot).toAbsolutePath().normalize();
+        this.maxExtractedTextChars = Math.max(1, maxExtractedTextChars);
         this.localizedMessages = localizedMessages;
     }
 
@@ -53,6 +58,7 @@ public class CareerDocumentUploadService {
                     localizedMessages.get(supportedLocale, "errors.upload.provideTextOrFile")
             );
         }
+        validateExtractedTextLength(fieldName, normalizedText, supportedLocale);
 
         return WorkflowDocumentInput.text(normalizedText);
     }
@@ -83,6 +89,7 @@ public class CareerDocumentUploadService {
                                 : localizedMessages.get(locale, "errors.upload.unreadableText")
                 );
             }
+            validateExtractedTextLength(fieldName + "File", normalizedText, locale);
 
             return WorkflowDocumentInput.file(originalFilename, targetPath.toString(), normalizedText);
         } catch (ApiValidationException exception) {
@@ -96,6 +103,9 @@ public class CareerDocumentUploadService {
         if (originalFilename == null) {
             throw validationException(fieldName + "File", localizedMessages.get(locale, "errors.upload.unsupportedFileType"));
         }
+        if (originalFilename.length() > MAX_ORIGINAL_FILENAME_LENGTH || containsControlCharacter(originalFilename)) {
+            throw validationException(fieldName + "File", localizedMessages.get(locale, "errors.upload.invalidFilename"));
+        }
 
         int lastDotIndex = originalFilename.lastIndexOf('.');
         if (lastDotIndex < 0 || lastDotIndex == originalFilename.length() - 1) {
@@ -108,6 +118,15 @@ public class CareerDocumentUploadService {
         }
 
         return extension;
+    }
+
+    private void validateExtractedTextLength(String fieldName, String text, SupportedLocale locale) {
+        if (text.length() > maxExtractedTextChars) {
+            throw validationException(
+                    fieldName,
+                    localizedMessages.get(locale, "errors.upload.textTooLong", maxExtractedTextChars)
+            );
+        }
     }
 
     private Path buildTargetPath(String workflowId, String fieldName, String extension, SupportedLocale locale) {
@@ -148,8 +167,24 @@ public class CareerDocumentUploadService {
             return null;
         }
 
-        String normalized = Path.of(originalFilename).getFileName().toString().trim();
-        return normalized.isEmpty() ? null : normalized;
+        String trimmed = originalFilename.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        if (containsControlCharacter(trimmed)) {
+            return trimmed;
+        }
+
+        try {
+            String normalized = Path.of(trimmed).getFileName().toString().trim();
+            return normalized.isEmpty() ? null : normalized;
+        } catch (InvalidPathException exception) {
+            return trimmed;
+        }
+    }
+
+    private boolean containsControlCharacter(String value) {
+        return value.chars().anyMatch(character -> Character.isISOControl((char) character));
     }
 
     private String normalizeText(String textValue) {

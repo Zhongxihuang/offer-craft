@@ -28,7 +28,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentReturnsNormalizedTextWhenNoFileIsProvided() {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
 
         WorkflowDocumentInput result = service.resolveDocument(
                 "workflow-123",
@@ -44,7 +44,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentRejectsMissingTextAndFileSources() {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
 
         ApiValidationException exception = assertThrows(
                 ApiValidationException.class,
@@ -58,7 +58,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentReadsUtf8TextFiles() {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
         MockMultipartFile file = new MockMultipartFile(
                 "jobDescriptionFile",
                 "job-description.txt",
@@ -76,7 +76,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentReadsTextBasedPdfFiles() throws Exception {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
         MockMultipartFile file = new MockMultipartFile(
                 "candidateProfileFile",
                 "candidate-profile.pdf",
@@ -93,7 +93,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentRejectsUnsupportedFileTypes() {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
         MockMultipartFile file = new MockMultipartFile(
                 "jobDescriptionFile",
                 "job-description.docx",
@@ -112,7 +112,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentRejectsUnsafeWorkflowIdsBeforeSavingFiles() {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
         MockMultipartFile file = new MockMultipartFile(
                 "jobDescriptionFile",
                 "job-description.txt",
@@ -132,7 +132,7 @@ class CareerDocumentUploadServiceTest {
 
     @Test
     void resolveDocumentRejectsBlankPdfTextWithoutOcrSupport() throws Exception {
-        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        CareerDocumentUploadService service = uploadService();
         MockMultipartFile file = new MockMultipartFile(
                 "jobDescriptionFile",
                 "job-description.pdf",
@@ -147,6 +147,41 @@ class CareerDocumentUploadServiceTest {
 
         assertEquals("jobDescriptionFile", exception.details().getFirst().field());
         assertTrue(exception.details().getFirst().message().contains("OCR is not supported in v1"));
+    }
+
+    @Test
+    void resolveDocumentRejectsOverlongExtractedText() {
+        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), 10, localizedMessages());
+
+        ApiValidationException exception = assertThrows(
+                ApiValidationException.class,
+                () -> service.resolveDocument("workflow-123", "jobDescription", null, "This text is too long.", "en")
+        );
+
+        assertEquals("jobDescription", exception.details().getFirst().field());
+        assertTrue(exception.details().getFirst().message().contains("too long"));
+    }
+
+    @Test
+    void resolveDocumentRejectsUnsafeOriginalFilenames() {
+        CareerDocumentUploadService service = uploadService();
+        MockMultipartFile file = new MockMultipartFile(
+                "jobDescriptionFile",
+                "bad\u0000name.txt",
+                "text/plain",
+                "Enterprise AI PM role".getBytes(StandardCharsets.UTF_8)
+        );
+
+        ApiValidationException exception = assertThrows(
+                ApiValidationException.class,
+                () -> service.resolveDocument("workflow-123", "jobDescription", file, null, "en")
+        );
+
+        assertEquals("jobDescriptionFile", exception.details().getFirst().field());
+    }
+
+    private CareerDocumentUploadService uploadService() {
+        return new CareerDocumentUploadService(tempDir.toString(), 200_000, localizedMessages());
     }
 
     private byte[] createPdfBytes(String text) throws Exception {
@@ -181,11 +216,22 @@ class CareerDocumentUploadServiceTest {
                 .thenAnswer(invocation -> switch ((String) invocation.getArgument(1)) {
                     case "errors.upload.provideTextOrFile" -> "Provide pasted text or upload a .pdf, .txt, or .md file.";
                     case "errors.upload.unsupportedFileType" -> "Upload a .pdf, .txt, or .md file.";
+                    case "errors.upload.invalidFilename" -> "Use a shorter file name without control characters.";
                     case "errors.upload.invalidWorkflowId" -> "workflowId may only contain letters, numbers, underscores, and hyphens, and must be at most 128 characters.";
                     case "errors.upload.invalidPath" -> "The upload storage path is invalid.";
                     case "errors.upload.unreadablePdf" -> "The uploaded PDF did not contain extractable text. OCR is not supported in v1.";
                     case "errors.upload.unreadableText" -> "The uploaded file did not contain readable text.";
+                    case "errors.upload.textTooLong" -> "The extracted document text is too long.";
                     case "errors.upload.storeFailed" -> "Failed to store or parse the uploaded file.";
+                    default -> (String) invocation.getArgument(1);
+                });
+        org.mockito.Mockito.when(localizedMessages.get(
+                        org.mockito.ArgumentMatchers.any(com.workspace.codeforgeai.common.i18n.SupportedLocale.class),
+                        org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.any()
+                ))
+                .thenAnswer(invocation -> switch ((String) invocation.getArgument(1)) {
+                    case "errors.upload.textTooLong" -> "The extracted document text is too long.";
                     default -> (String) invocation.getArgument(1);
                 });
         return localizedMessages;
