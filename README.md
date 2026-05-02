@@ -134,7 +134,7 @@ Provider mode requires `DASHSCOPE_API_KEY`. Search/RAG/MCP are enhancement layer
 This is still a portfolio MVP, but the launch-readiness pass adds production-adjacent guardrails:
 
 - CORS origins are configured through `career.web.allowed-origins`.
-- H2 console is local-only.
+- H2 console is disabled by default, including local demo mode. If you need it for debugging, set `SPRING_H2_CONSOLE_ENABLED=true` locally only.
 - `./data`, `target`, `.m2`, `frontend/dist`, and `frontend/node_modules` are ignored.
 - Uploads are limited to PDF, TXT, and MD.
 - Text extraction rejects image-only PDFs because OCR is out of scope for v1.
