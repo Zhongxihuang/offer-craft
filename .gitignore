@@ -4,6 +4,7 @@ HELP.md
 /frontend/dist/
 /frontend/node_modules/
 /.m2/
+/.shared/
 
 target/
 .mvn/wrapper/maven-wrapper.jar

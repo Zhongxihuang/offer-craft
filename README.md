@@ -279,3 +279,7 @@ Manual launch checklist:
 5. Token-protected restore returns `403` without `X-Workflow-Access-Token`.
 6. Support chat follows up with workflow context.
 7. Chinese/English switch updates UI immediately.
+
+## License
+
+This project is open sourced under the [MIT License](LICENSE).
