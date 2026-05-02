@@ -17,17 +17,17 @@ public class ChatModelListenerConfig {
         return new ChatModelListener() {
             @Override
             public void onRequest(ChatModelRequestContext requestContext) {
-                log.info("onRequest(): {}", requestContext.chatRequest());
+                log.debug("Chat model request started.");
             }
 
             @Override
             public void onResponse(ChatModelResponseContext responseContext) {
-                log.info("onResponse(): {}", responseContext.chatResponse());
+                log.debug("Chat model response received.");
             }
 
             @Override
             public void onError(ChatModelErrorContext errorContext) {
-                log.info("onError(): {}", errorContext.error().getMessage());
+                log.warn("Chat model request failed: {}", errorContext.error().getMessage());
             }
         };
     }

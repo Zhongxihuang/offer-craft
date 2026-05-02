@@ -1,391 +1,285 @@
 <div align="center">
 
-# Code Forge AI
+# AI Career Decision & Interview Prep Agent
 
-### AI-Powered Software Engineering Coach
-
-An intelligent conversational platform that combines LLM reasoning, retrieval-augmented generation, and real-time tool execution to accelerate developer growth — from first commit to signed offer letter.
+### Workflow-first career decision agent for JD fit, Top 3 gaps, and interview prep
 
 [![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5.9-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![LangChain4j](https://img.shields.io/badge/LangChain4j-1.1.0-2B6CB0)](https://docs.langchain4j.dev/)
 [![Vue 3](https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
-[Getting Started](#-getting-started) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Contributing](#-contributing)
+[Quick Local Demo](#quick-local-demo) | [Core Workflow](#core-workflow) | [API](#api) | [Security Defaults](#security-defaults) | [Portfolio Materials](#portfolio-materials)
 
 </div>
 
----
+## What Problem This Solves
 
-## Why Code Forge AI?
+很多候选人看到 AI 产品、平台产品或 GenAI 相关岗位时，真正卡住的不是“问 AI 一个问题”，而是下面这条决策链：
 
-Most AI coding assistants stop at autocomplete. **Code Forge AI** goes further — it acts as an **engineering mentor** that understands your career context:
+1. 这份 JD 到底在招什么能力？
+2. 我的简历证据够不够支撑这些要求？
+3. 我该不该投，还是应该先补表达或先准备？
+4. 最影响结果的 Top 3 gaps 是什么？
+5. 接下来 3-7 天应该具体做什么？
 
-- **Write & debug code** with structured problem-solving and test-driven guidance
-- **Plan your learning path** with milestone-driven roadmaps tailored to your target role
-- **Prepare for interviews** with real questions pulled from live sources, not static datasets
-- **Navigate your job search** end-to-end: résumé, portfolio, networking, negotiation
+这个项目不是泛聊天助手，而是把 **JD 解析 -> 候选人分析 -> Gap 排序 -> 面试准备 -> 结果追问/更新** 做成一个可复用的 workflow。
 
-All of this is backed by a curated knowledge base, real-time web search, and purpose-built tooling — not just a raw LLM prompt.
+## Why This Is An Agent, Not Just A Chatbot
 
----
+The application uses typed, staged workflow agents:
 
-## ✨ Features
+1. `JD Parsing Agent` extracts role signals, must-haves, keywords, and interview themes.
+2. `Candidate Analysis Agent` structures strengths, evidence, and missing signals from a resume or profile.
+3. `Gap Analysis Agent` ranks the gaps by hiring impact, evidence weakness, and interview risk.
+4. `Interview Prep Agent` converts findings into resume framing, mock questions, and a 3-7 day action plan.
+5. `Support Chat` links back to the saved `workflowId`, so follow-up questions continue from the generated artifact instead of starting from zero.
 
-| | Feature | Details |
-|---|---------|---------|
-| ⚡ | **Streaming Responses** | Token-by-token delivery via SSE for a natural, real-time conversation experience |
-| 📚 | **RAG-Enhanced Answers** | Domain-specific knowledge base (study routes, interview banks, career playbooks) automatically retrieved and injected into context |
-| 🔌 | **MCP Protocol Integration** | Live web search via Model Context Protocol — the AI can access up-to-date information beyond its training cutoff |
-| 🛠️ | **Extensible Tool System** | Built-in interview question scraper; easily add new tools via LangChain4j's `@Tool` annotation |
-| 🛡️ | **Input Guardrails** | Pluggable safety layer that intercepts and blocks unsafe or abusive input before it reaches the model |
-| 🧠 | **Session-Isolated Memory** | Each conversation maintains independent context history with a configurable sliding window |
-| 📊 | **Observability** | Full request/response/error lifecycle logging via `ChatModelListener` for debugging and monitoring |
-| 📱 | **Responsive UI** | Clean, mobile-friendly chat interface built with Vue 3 Composition API |
+## Core Workflow
 
----
-
-## 🏗️ Architecture
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      Client  (Vue 3 + Vite)                  │
-│                          :5173                               │
-│              Proxy  /api  ──────────────►  Backend            │
-└──────────────────────────┬───────────────────────────────────┘
-                           │  Server-Sent Events
-┌──────────────────────────▼───────────────────────────────────┐
-│                   Application  (Spring Boot)                  │
-│                          :8081/api                            │
-│                                                               │
-│   ┌─────────────┐    ┌──────────────────────────────────┐    │
-│   │ AiController │───►│      CodeForgeAiService          │    │
-│   │  GET /ai/chat│    │  (LangChain4j AI Services)       │    │
-│   └─────────────┘    │                                    │    │
-│                       │  ┌────────────┐  ┌─────────────┐ │    │
-│                       │  │ Guardrails │  │ Chat Memory │ │    │
-│                       │  └────────────┘  └─────────────┘ │    │
-│                       │  ┌────────────┐  ┌─────────────┐ │    │
-│                       │  │    RAG     │  │    Tools    │ │    │
-│                       │  │ Retriever  │  │ + MCP Client│ │    │
-│                       │  └────────────┘  └─────────────┘ │    │
-│                       └──────────┬───────────────────────┘    │
-│                                  │                             │
-│   ┌──────────────────────────────▼──────────────────────────┐│
-│   │              LLM Provider  (DashScope)                   ││
-│   │     Qwen-Max (Chat)  ·  Qwen-Max (Stream)  ·  Embedding ││
-│   └──────────────────────────────────────────────────────────┘│
-└───────────────────────────────────────────────────────────────┘
-          │                                       │
-          ▼                                       ▼
-   ┌─────────────┐                      ┌──────────────────┐
-   │  RAG Docs   │                      │  External APIs   │
-   │  (Markdown) │                      │  · Zhipu Search  │
-   └─────────────┘                      │  · mianshiya.com │
-                                        └──────────────────┘
+```text
+JD parsing -> candidate analysis -> gap analysis -> interview prep generation -> workflow-linked follow-up
 ```
 
----
+The main output bundle includes:
 
-## 🔧 Tech Stack
+- apply verdict: apply now, reframe first, prep first, or redirect effort
+- JD must-haves and interview focus areas
+- candidate strengths, evidence, and missing signals
+- Top 3 gaps that most affect the outcome
+- why each gap matters, evidence weakness, and prep action
+- confidence summary and clarification questions
+- 3-7 day preparation checklist
+- optional company research suggestions when provider tools are available
+
+## Quick Local Demo
+
+The default local profile is demo-friendly. You can run the full workflow without provider keys.
 
 ### Backend
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Runtime | Java (OpenJDK) | 21 LTS |
-| Framework | Spring Boot | 3.5.9 |
-| Reactive Streaming | Spring WebFlux | 6.x |
-| AI Orchestration | LangChain4j | 1.1.0 |
-| LLM Provider | LangChain4j DashScope (Qwen) | 1.1.0-beta7 |
-| Tool Protocol | LangChain4j MCP | 1.1.0-beta7 |
-| Web Scraping | Jsoup | 1.20.1 |
-| Code Generation | Lombok | latest |
+```powershell
+$env:JAVA_HOME="C:\Program Files\Java\jdk-21"
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
+mvn.cmd "-Dmaven.repo.local=.m2\repository" test
+mvn.cmd spring-boot:run
+```
+
+The backend runs at `http://localhost:8081/api` and uses:
+
+- `career.ai.mode=demo`
+- H2 file database under `./data`
+- local upload storage under `./data/uploads`
+- no external model, RAG, or search key requirement
 
 ### Frontend
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Framework | Vue.js (Composition API) | 3.4+ |
-| Build Tooling | Vite | 5.x |
-| HTTP Client | Axios | 1.6+ |
-| Streaming | EventSource (native) | — |
-
-### AI & Data
-
-| Model | Provider | Role |
-|-------|----------|------|
-| Qwen-Max | Alibaba DashScope | Primary chat & streaming model |
-| text-embedding-v4 | Alibaba DashScope | Document embedding for RAG |
-| Web Search | Zhipu AI (BigModel) | Real-time internet search via MCP |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-| Requirement | Minimum Version |
-|-------------|----------------|
-| JDK | 21+ |
-| Maven | 3.9+ |
-| Node.js | 18+ |
-| npm | 9+ |
-
-### 1. Clone & Navigate
-
-```bash
-git clone https://github.com/your-org/code-forge-ai.git
-cd code-forge-ai
-```
-
-### 2. Configure Credentials
-
-Create or edit `src/main/resources/application-local.yml`:
-
-```yaml
-langchain4j:
-  community:
-    dashscope:
-      chat-model:
-        api-key: ${DASHSCOPE_API_KEY}
-      embedding-model:
-        api-key: ${DASHSCOPE_API_KEY}
-      streaming-chat-model:
-        api-key: ${DASHSCOPE_API_KEY}
-
-bigmodel:
-  api-key: ${BIGMODEL_API_KEY}
-```
-
-<details>
-<summary><strong>Where to get API keys</strong></summary>
-
-| Provider | Sign-Up URL | Key Type |
-|----------|-------------|----------|
-| Alibaba DashScope | [dashscope.aliyun.com](https://dashscope.aliyun.com/) | `DASHSCOPE_API_KEY` |
-| Zhipu AI (BigModel) | [open.bigmodel.cn](https://open.bigmodel.cn/) | `BIGMODEL_API_KEY` |
-
-</details>
-
-### 3. Launch Backend
-
-```bash
-# Linux / macOS
-./mvnw spring-boot:run
-
-# Windows
-mvnw.cmd spring-boot:run
-```
-
-The API will be available at `http://localhost:8081/api`.
-
-### 4. Launch Frontend
-
-```bash
+```powershell
 cd frontend
-npm install
-npm run dev
+npm.cmd install
+npm.cmd run dev
 ```
 
-The UI will be available at `http://localhost:5173`. API requests are automatically proxied to the backend.
+Open `http://localhost:5173`.
 
-### 5. Open & Chat
+Recommended live demo:
 
-Navigate to **http://localhost:5173** — you're ready to go.
+1. Open [docs/demo/ai-pm-canonical/job-description.md](docs/demo/ai-pm-canonical/job-description.md).
+2. Open [docs/demo/ai-pm-canonical/candidate-resume.md](docs/demo/ai-pm-canonical/candidate-resume.md).
+3. Paste both into the workflow form and run analysis.
+4. Review apply verdict, confidence, Top 3 gaps, and 3-7 day action plan.
+5. Click support chat and ask: `把 Top 3 gaps 转成 7 天准备计划`.
 
----
+Static portfolio artifact:
 
-## 📡 API Reference
+- [workflow-request.json](docs/demo/ai-pm-canonical/workflow-request.json)
+- [workflow-response.sample.json](docs/demo/ai-pm-canonical/workflow-response.sample.json)
+- [support-chat-followups.md](docs/demo/ai-pm-canonical/support-chat-followups.md)
+- [demo-script.md](docs/demo/ai-pm-canonical/demo-script.md)
+
+Live model/provider results may vary; `workflow-response.sample.json` is the canonical portfolio artifact.
+
+## Windows JDK 21 Notes
+
+If the Maven wrapper is unavailable or broken on Windows, use `mvn.cmd` directly.
+
+```powershell
+$env:JAVA_HOME="C:\Program Files\Java\jdk-21"
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
+java -version
+mvn.cmd -version
+mvn.cmd compile
+mvn.cmd "-Dmaven.repo.local=.m2\repository" test
+```
+
+Using `-Dmaven.repo.local=.m2\repository` keeps dependencies inside the project workspace and avoids user-level Maven repository permission issues.
+
+## Provider Mode
+
+Provider mode enables real model and optional search/RAG capabilities.
+
+```powershell
+$env:CAREER_AI_MODE="provider"
+$env:DASHSCOPE_API_KEY="your_dashscope_key"
+$env:BIGMODEL_API_KEY="optional_search_key"
+$env:CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN="true"
+$env:CAREER_WORKFLOW_READ_TOKEN="a_restore_token"
+mvn.cmd spring-boot:run
+```
+
+Provider mode requires `DASHSCOPE_API_KEY`. Search/RAG/MCP are enhancement layers: when unavailable, the workflow should still return a useful result with visible fallback notes.
+
+## Security Defaults
+
+This is still a portfolio MVP, but the launch-readiness pass adds production-adjacent guardrails:
+
+- CORS origins are configured through `career.web.allowed-origins`.
+- CORS methods are limited to the currently used API methods: `GET`, `POST`, and `OPTIONS`.
+- H2 console is disabled by default, including local demo mode. If you need it for debugging, set `SPRING_H2_CONSOLE_ENABLED=true` locally only.
+- `./data`, `target`, `.m2`, `frontend/dist`, and `frontend/node_modules` are ignored.
+- Uploads are limited to PDF, TXT, and MD.
+- Uploaded file names reject control characters and overly long names.
+- Extracted document text is capped by `CAREER_WORKFLOW_MAX_EXTRACTED_TEXT_CHARS` to reduce accidental oversized payloads.
+- Text extraction rejects image-only PDFs because OCR is out of scope for v1.
+- Uploaded file paths are normalized and must stay inside `./data/uploads/{workflowId}`.
+- Restore endpoints can require `X-Workflow-Access-Token` when `CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN=true`.
+- When workflow token protection is enabled, startup fails if `CAREER_WORKFLOW_READ_TOKEN` is missing.
+- MCP request/response logging is disabled by default to avoid leaking provider keys, prompts, JD text, or resume text.
+
+## Known Limitations
+
+- No account system or multi-user tenant model yet.
+- Restore is latest-workflow based on localStorage plus persisted backend result.
+- Uploaded PDFs must contain extractable text; OCR is not supported.
+- Provider quality depends on available model/search credentials.
+- Support chat history is session memory, not a persisted conversation store.
+- This is not an auto-apply tool; it stops at decision support and interview preparation.
+
+## API
+
+Base path: `http://localhost:8081/api`
+
+### `POST /career/workflow/analyze`
+
+Runs the JSON text workflow.
+
+```json
+{
+  "locale": "zh-CN",
+  "targetRole": "AI 产品经理",
+  "targetLevel": "实习生",
+  "companyName": "美团",
+  "jobDescription": "粘贴 JD...",
+  "candidateProfile": "粘贴简历或候选人背景...",
+  "focusAreas": ["面试策略", "技术理解"],
+  "includeCompanyResearch": true
+}
+```
+
+### `POST /career/workflow/analyze-upload`
+
+Runs the same workflow with multipart intake. Each slot must provide pasted text or a file; when both are provided, the file wins.
+
+Supported files: `.pdf`, `.txt`, `.md`.
+
+### `POST /career/workflow/compare`
+
+Compares 2-5 target roles against the same candidate profile and returns a ranked shortlist.
+
+### `GET /career/workflow/{workflowId}`
+
+Restores a persisted workflow result. In token-protected mode, include:
+
+```http
+X-Workflow-Access-Token: your_restore_token
+```
 
 ### `GET /api/ai/chat`
 
-Initiates a streaming chat session.
+Streaming support chat. When `workflowId` is passed, the answer is grounded in the saved workflow artifact.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `memoryId` | `int` | Yes | Unique session identifier for conversation memory isolation |
-| `message` | `string` | Yes | The user's input message |
+## Error Envelope
 
-**Response:** `text/event-stream`
+Errors use a stable JSON envelope:
+
+```json
+{
+  "timestamp": "2026-04-30T12:00:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Request validation failed.",
+  "path": "/api/career/workflow/analyze",
+  "details": [
+    {
+      "field": "jobDescription",
+      "message": "jobDescription is required."
+    }
+  ]
+}
+```
+
+Frontend localized handling covers `400`, `403`, `404`, `413`, `415`, `429`, `500`, and network errors.
+
+## Architecture
 
 ```text
-data: Based on your question about
-data:  Spring Boot configuration,
-data:  here are the key steps...
+Vue 3 Frontend
+  -> Workflow intake / result workspace / support chat
+  -> Axios JSON + multipart API calls
+  -> EventSource streaming chat
+
+Spring Boot Backend
+  -> CareerWorkflowController
+  -> CareerWorkflowApplicationService
+  -> CareerWorkflowOrchestrator
+  -> JD / Candidate / Gap / Interview Prep AI services
+  -> WorkflowSessionStore
+  -> H2 persistence + local upload storage
 ```
 
-**cURL Example:**
+Main packages:
 
-```bash
-curl -N "http://localhost:8081/api/ai/chat?memoryId=1&message=How+do+I+prepare+for+a+backend+interview"
-```
+- `src/main/java/com/workspace/codeforgeai/career/api`: request/response DTOs and REST controller
+- `src/main/java/com/workspace/codeforgeai/career/workflow`: orchestration, persistence, upload handling, confidence annotation
+- `src/main/java/com/workspace/codeforgeai/career/demo`: local deterministic demo-mode agents
+- `src/main/java/com/workspace/codeforgeai/ai`: chat, RAG, MCP, tools, model configuration
+- `frontend/src/components`: workflow intake, result view, support chat, header
+- `frontend/src/api`: workflow and chat API helpers
 
----
+## Portfolio Materials
 
-## 🧩 Internal Design
+These docs are written for AI PM / product manager internship interviews:
 
-### Service Composition
+- [中文 PRD](docs/product/chinese-prd.md)
+- [Outcome eval cases](docs/product/eval-cases.md)
+- [与直接问 ChatGPT 的对比](docs/product/chatgpt-comparison.md)
+- [2 分钟面试讲述](docs/product/interview-talk-track.md)
+- [Launch checklist](docs/product/launch-checklist.md)
 
-`CodeForgeAiServiceFactory` assembles the AI service pipeline using LangChain4j's declarative `AiServices.builder()`:
+Suggested resume framing:
 
-```
-Input → Guardrails → Memory Lookup → RAG Retrieval → LLM Call (+ Tools/MCP) → Stream Output
-```
+> 设计并实现 workflow-first AI Career Agent，将 JD 解析、候选人证据分析、Top 3 gap 排序和 3-7 天面试准备串成闭环，支持文件上传、H2 持久化、中英文切换、workflow-linked support chat 和 demo/provider 双运行模式。
 
-| Layer | Component | Responsibility |
-|-------|-----------|----------------|
-| Safety | `SafeInputGuardrail` | Blocks requests containing prohibited terms |
-| Memory | `ChatMemoryProvider` | Maintains per-session sliding window (10 messages) |
-| Knowledge | `ContentRetriever` | Embeds & retrieves from local Markdown knowledge base |
-| Tools | `InterviewQuestionTool` | Scrapes real-time interview questions on demand |
-| Search | `McpToolProvider` | Delegates web search to Zhipu via MCP protocol |
-| Observability | `ChatModelListener` | Logs full request/response/error lifecycle |
+## Verification
 
-### RAG Pipeline
-
-1. **Ingest** — Load Markdown docs from `src/main/resources/docs/`
-2. **Split** — Paragraph-level chunking (1,000 chars, 200-char overlap)
-3. **Transform** — Prepend filename metadata to each segment for context
-4. **Embed** — Vectorize with DashScope `text-embedding-v4`
-5. **Store** — In-memory embedding store (swappable to persistent stores)
-6. **Retrieve** — Cosine similarity search at query time, top-k injection into prompt
-
-### Knowledge Base Contents
-
-| Document | Coverage |
-|----------|----------|
-| Programming Study Routes | Multi-track roadmaps (backend, data, security) with milestones |
-| Interview Question Bank | Categorized questions with expected signals and answer frameworks |
-| Job-Seeking Playbook | End-to-end guide: positioning → résumé → networking → offers |
-| Project Learning Advice | MVP-to-portfolio methodology with evaluation criteria |
-| Templates & Checklists | Ready-to-use README, résumé, outreach, and prep templates |
-
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DASHSCOPE_API_KEY` | Alibaba Cloud DashScope API key for Qwen models | ✅ |
-| `BIGMODEL_API_KEY` | Zhipu AI API key for web search MCP | ✅ |
-
-> Values in `application-local.yml` take precedence over environment variables.
-
-### Application Properties
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `server.port` | `8081` | Backend HTTP port |
-| `server.servlet.context-path` | `/api` | API base path |
-| `langchain4j.community.dashscope.chat-model.model-name` | `qwen-max` | Primary LLM model |
-
----
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-./mvnw test
-
-# Windows
-mvnw.cmd test
-```
-
----
-
-## 📦 Deployment
-
-### Backend
-
-```bash
-./mvnw clean package -DskipTests
-java -jar target/code-forge-ai-0.0.1-SNAPSHOT.jar
-```
-
-### Frontend
-
-```bash
+```powershell
+git diff --check
+mvn.cmd compile
+mvn.cmd "-Dmaven.repo.local=.m2\repository" test
 cd frontend
-npm run build
-# Output: frontend/dist/
+npm.cmd run build
 ```
 
-Serve the `dist/` directory with any static file server (Nginx, Caddy, etc.) and proxy `/api` to the backend.
+Manual launch checklist:
 
----
+1. Local demo starts without provider keys.
+2. Text-only workflow returns decision summary, confidence, Top 3 gaps, and prep plan.
+3. Upload workflow works for TXT/MD/PDF with extractable text.
+4. Restore works after backend restart.
+5. Token-protected restore returns `403` without `X-Workflow-Access-Token`.
+6. Support chat follows up with workflow context.
+7. Chinese/English switch updates UI immediately.
 
-## 📂 Project Structure
+## License
 
-```
-code-forge-ai/
-├── pom.xml
-├── src/main/java/com/workspace/codeforgeai/
-│   ├── CodeForgeAiApplication.java          # Application entry point
-│   ├── controller/
-│   │   └── AiController.java               # SSE streaming endpoint
-│   └── ai/
-│       ├── CodeForgeAi.java                 # Low-level chat wrapper
-│       ├── CodeForgeAiService.java          # AI Service contract
-│       ├── CodeForgeAiServiceFactory.java   # Service assembly & wiring
-│       ├── config/CorsConfig.java           # CORS policy
-│       ├── guardrail/SafeInputGuardrail.java
-│       ├── listener/ChatModelListenerConfig.java
-│       ├── mcp/McpConfig.java               # Zhipu MCP transport
-│       ├── model/QwenChatModelConfig.java   # Model bean definition
-│       ├── rag/RagConfig.java               # RAG pipeline setup
-│       └── tools/InterviewQuestionTool.java # @Tool implementation
-├── src/main/resources/
-│   ├── application.yml                      # Shared configuration
-│   ├── application-local.yml                # Local overrides (git-ignored)
-│   ├── system-prompt.txt                    # System prompt template
-│   └── docs/                               # RAG knowledge base
-├── src/test/java/                           # Test suite
-└── frontend/                               # Vue 3 SPA
-    ├── vite.config.js                       # Dev server & proxy
-    └── src/
-        ├── api/                             # HTTP & SSE client layer
-        └── components/                      # UI components
-```
-
----
-
-## 🗺️ Roadmap
-
-| Quarter | Milestone |
-|---------|-----------|
-| **Next** | Multi-user authentication · Persistent chat history (PostgreSQL) |
-| **v1.1** | Multi-model support (OpenAI, Anthropic) · File upload & code review |
-| **v1.2** | Docker Compose deployment · Helm chart for Kubernetes |
-| **v2.0** | Admin dashboard · Knowledge base CMS · Analytics & usage metrics |
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read the following before submitting a PR:
-
-1. Fork the repository and create a feature branch from `main`
-2. Follow existing code style and naming conventions
-3. Include tests for any new functionality
-4. Update documentation as needed
-5. Open a Pull Request with a clear description of the changes
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-<div align="center">
-
-**[⬆ Back to Top](#code-forge-ai)**
-
-Built with [LangChain4j](https://docs.langchain4j.dev/) · [Spring Boot](https://spring.io/projects/spring-boot) · [Vue.js](https://vuejs.org/)
-
-</div>
+This project is open sourced under the [MIT License](LICENSE).

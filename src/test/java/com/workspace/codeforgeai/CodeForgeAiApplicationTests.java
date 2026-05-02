@@ -6,9 +6,11 @@ import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.UserMessage;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(properties = "career.ai.mode=provider")
+@EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY", matches = ".+")
 class CodeForgeAiApplicationTests {
 
     @Resource
@@ -22,10 +24,7 @@ class CodeForgeAiApplicationTests {
 
     @Test
     void testChatWithMessage() {
-        UserMessage userMessage = UserMessage.from(
-                TextContent.from("Image description"),
-                ImageContent.from("https://docs.langchain4j.info/img/logo.svg")
-        );
+        UserMessage userMessage = UserMessage.from(TextContent.from("Give me a short hello."));
         codeForgeAi.chatWithMessage(userMessage);
     }
 }

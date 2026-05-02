@@ -1,0 +1,14 @@
+career:
+  ai:
+    mode: ${CAREER_AI_MODE:demo}
+  workflow:
+    access:
+      require-token: ${CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN:false}
+
+spring:
+  h2:
+    console:
+      enabled: ${SPRING_H2_CONSOLE_ENABLED:false}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}

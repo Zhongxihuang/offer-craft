@@ -1,10 +1,12 @@
 package com.workspace.codeforgeai.ai;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(properties = "career.ai.mode=provider")
+@EnabledIfEnvironmentVariable(named = "DASHSCOPE_API_KEY", matches = ".+")
 class CodeForgeAiServiceTest {
 
     @Autowired
@@ -47,6 +49,7 @@ class CodeForgeAiServiceTest {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = "BIGMODEL_API_KEY", matches = ".+")
     void chatWithMcp() {
         String result = codeForgeAiService.chat("What is leetcode?");
         System.out.println(result);

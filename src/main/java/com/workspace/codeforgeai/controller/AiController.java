@@ -1,11 +1,11 @@
 package com.workspace.codeforgeai.controller;
 
 
-import com.workspace.codeforgeai.ai.CodeForgeAiService;
-import jakarta.annotation.Resource;
+import com.workspace.codeforgeai.career.support.CareerSupportChatService;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
@@ -13,14 +13,20 @@ import reactor.core.publisher.Flux;
 @RequestMapping("/ai")
 public class AiController {
 
-    @Resource
-    private CodeForgeAiService codeForgeAiService;
+    private final CareerSupportChatService careerSupportChatService;
+
+    public AiController(CareerSupportChatService careerSupportChatService) {
+        this.careerSupportChatService = careerSupportChatService;
+    }
 
     @GetMapping("/chat")
-    public Flux<ServerSentEvent<String>> chat(int memoryId, String message) {
-        return codeForgeAiService.chatWithStream(memoryId, message)
+    public Flux<ServerSentEvent<String>> chat(@RequestParam int memoryId,
+                                              @RequestParam String message,
+                                              @RequestParam(required = false) String workflowId,
+                                              @RequestParam(required = false) String locale) {
+        return careerSupportChatService.chat(memoryId, message, workflowId, locale)
                 .map(chunk -> ServerSentEvent.<String>builder()
-                .data(chunk)
-                .build());
+                        .data(chunk)
+                        .build());
     }
 }

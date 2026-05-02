@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getCurrentLocale } from '../i18n'
 
 // Base URL for API requests
 export const API_BASE_URL = 'http://localhost:8081/api'
@@ -6,15 +7,14 @@ export const API_BASE_URL = 'http://localhost:8081/api'
 // Create axios instance with default configuration
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  timeout: 30000
 })
 
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
+    config.headers = config.headers || {}
+    config.headers['Accept-Language'] = getCurrentLocale()
     // Add any auth tokens or custom headers here if needed
     return config
   },

@@ -7,10 +7,9 @@
         <path d="M14.5 4l-5 16" />
       </svg>
     </div>
-    <h2>Welcome to Code Forge AI</h2>
+    <h2>AI Career Decision & Interview Prep Agent</h2>
     <p class="welcome-description">
-      Your personal assistant for programming learning and career development.
-      Ask me anything about:
+      Start with the core workflow: parse the JD, analyze the candidate, identify the gaps, and turn them into a focused prep plan.
     </p>
     <div class="topic-cards">
       <button 
@@ -34,9 +33,9 @@ defineEmits(['select-topic'])
 
 const topics = [
   {
-    title: 'Programming Roadmaps',
-    description: 'Get guidance on learning paths for different technologies',
-    prompt: 'What is a good roadmap for learning full-stack web development?',
+    title: 'JD Parsing',
+    description: 'Break a job description into must-haves, nice-to-haves, and interview signals',
+    prompt: 'Help me parse this backend engineer job description and identify the true must-have requirements.',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="4.5" r="2.5"/>
       <path d="M12 7v3"/>
@@ -49,9 +48,9 @@ const topics = [
     </svg>`
   },
   {
-    title: 'Interview Preparation',
-    description: 'Practice technical and behavioral interview questions',
-    prompt: 'Can you give me some common Java interview questions for senior developers?',
+    title: 'Candidate Analysis',
+    description: 'Turn a resume into strengths, evidence, and missing signals',
+    prompt: 'Analyze this candidate profile for a senior Java backend role and tell me what hiring signals are strongest.',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
       <circle cx="9" cy="7" r="4"/>
@@ -60,18 +59,18 @@ const topics = [
     </svg>`
   },
   {
-    title: 'Code Review & Debug',
-    description: 'Get help with code issues and best practices',
-    prompt: 'Can you help me understand how to optimize a slow database query?',
+    title: 'Gap Analysis',
+    description: 'Compare the candidate against the JD and prioritize the highest-risk gaps',
+    prompt: 'Compare this resume against the job description and tell me the top gaps that matter most before interviewing.',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 20h9"/>
       <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
     </svg>`
   },
   {
-    title: 'Resume & Career Tips',
-    description: 'Improve your resume and job search strategy',
-    prompt: 'What should I include in my software developer resume to stand out?',
+    title: 'Interview Prep',
+    description: 'Generate technical, behavioral, and company research preparation',
+    prompt: 'Create a targeted interview prep plan for this JD and candidate, including behavioral stories and company research angles.',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
       <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
