@@ -32,6 +32,7 @@
           <WorkflowResultView
             v-else
             :workflow-result="workflowResult"
+            :comparison-result="comparisonResult"
             :workflow-versions="workflowVersions"
             :workflow-notice="workflowNotice"
             @start-new-analysis="handleStartNewAnalysis"
@@ -66,6 +67,7 @@ import { createChatStream, closeChatStream } from './api/chat'
 import {
   analyzeCareerWorkflow,
   analyzeCareerWorkflowUpload,
+  compareCareerWorkflows,
   getCareerWorkflow,
   getCareerWorkflowVersions,
   refineCareerWorkflow,
@@ -91,6 +93,7 @@ const workflowForm = reactive(createInitialWorkflowForm())
 
 const fieldErrors = reactive({})
 const workflowResult = ref(null)
+const comparisonResult = ref(null)
 const currentWorkflowId = ref(null)
 const workflowMeta = ref(null)
 const workflowVersions = ref([])
@@ -185,9 +188,19 @@ function createInitialWorkflowForm() {
     candidateProfile: '',
     focusAreasText: '',
     includeCompanyResearch: false,
+    compareMode: false,
+    comparisonTargets: createInitialComparisonTargets(),
+    comparisonTargetsText: '',
     jobDescriptionFile: null,
     candidateProfileFile: null
   }
+}
+
+function createInitialComparisonTargets() {
+  return [
+    { targetRole: '', companyName: '', jobDescription: '' },
+    { targetRole: '', companyName: '', jobDescription: '' }
+  ]
 }
 
 function persistWorkflowState(response) {
@@ -208,6 +221,10 @@ function persistWorkflowState(response) {
 
   window.localStorage.setItem(WORKFLOW_ID_STORAGE_KEY, currentWorkflowId.value)
   window.localStorage.setItem(WORKFLOW_META_STORAGE_KEY, JSON.stringify(workflowMeta.value))
+}
+
+function clearComparisonResult() {
+  comparisonResult.value = null
 }
 
 function clearStoredWorkflow() {
@@ -365,7 +382,7 @@ async function restoreWorkflowIfNeeded() {
   } catch (error) {
     const normalizedError = normalizeApiError(error)
 
-    if (normalizedError.status === 404) {
+    if (normalizedError.status === 403 || normalizedError.status === 404) {
       clearStoredWorkflow()
       ui.workflowError = normalizedError.message
     } else {
@@ -421,6 +438,7 @@ function handlePrimaryAction() {
 
 function handleStartNewAnalysis() {
   workflowResult.value = null
+  clearComparisonResult()
   clearStoredWorkflow()
   clearWorkflowErrors()
   clearWorkflowNotice()
@@ -453,6 +471,7 @@ function handlePrefillConsumed() {
 async function handleWorkflowSubmit(formPayload) {
   clearWorkflowErrors()
   clearWorkflowNotice()
+  clearComparisonResult()
   ui.isSubmittingWorkflow = true
 
   if (!isValidMemoryId(chat.memoryId)) {
@@ -461,7 +480,25 @@ async function handleWorkflowSubmit(formPayload) {
   }
 
   try {
-    const response = hasSelectedWorkflowFiles(formPayload)
+    const comparisonTargets = resolveComparisonTargets(formPayload)
+    if (formPayload.compareMode && !hasSelectedWorkflowFiles(formPayload) && comparisonTargets.length < 2) {
+      replaceFieldErrors({
+        comparisonTargets: localizedFallback(
+          'Add at least two roles with a role title and JD text.',
+          '请至少填写两个岗位，并为每个岗位提供岗位名和 JD 内容。'
+        )
+      })
+      ui.workflowError = localizedFallback(
+        'We need at least two comparable roles before running role comparison.',
+        '需要至少两个可对比岗位，才能运行岗位优先级对比。'
+      )
+      ui.workflowView = 'form'
+      return
+    }
+    const shouldCompare = Boolean(formPayload.compareMode) && comparisonTargets.length >= 2 && !hasSelectedWorkflowFiles(formPayload)
+    const response = shouldCompare
+      ? await handleComparisonSubmit(formPayload, comparisonTargets)
+      : hasSelectedWorkflowFiles(formPayload)
       ? await analyzeCareerWorkflowUpload(buildWorkflowUploadFormData(formPayload))
       : await analyzeCareerWorkflow(buildWorkflowPayload(formPayload))
     workflowResult.value = response
@@ -478,6 +515,67 @@ async function handleWorkflowSubmit(formPayload) {
   } finally {
     ui.isSubmittingWorkflow = false
   }
+}
+
+async function handleComparisonSubmit(formPayload, targets) {
+  const comparison = await compareCareerWorkflows(buildComparisonPayload(formPayload, targets))
+  comparisonResult.value = comparison
+  const recommendedWorkflowId = comparison?.recommendedWorkflowId
+  return recommendedWorkflowId
+    ? await getCareerWorkflow(recommendedWorkflowId)
+    : await getCareerWorkflow(comparison?.items?.[0]?.workflowId)
+}
+
+function buildComparisonPayload(formPayload, targets) {
+  const focusAreas = String(formPayload.focusAreasText ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  return {
+    memoryId: chat.memoryId,
+    candidateProfile: formPayload.candidateProfile,
+    focusAreas,
+    includeCompanyResearch: Boolean(formPayload.includeCompanyResearch),
+    locale: currentLocale.value,
+    targets
+  }
+}
+
+function resolveComparisonTargets(formPayload) {
+  const cardTargets = Array.isArray(formPayload.comparisonTargets)
+    ? formPayload.comparisonTargets
+        .map((target) => ({
+          targetRole: normalizeOptional(target?.targetRole),
+          companyName: normalizeOptional(target?.companyName),
+          jobDescription: normalizeOptional(target?.jobDescription)
+        }))
+        .filter((target) => target.targetRole && target.jobDescription)
+    : []
+
+  return cardTargets.length > 0 ? cardTargets : parseComparisonTargets(formPayload.comparisonTargetsText)
+}
+
+function parseComparisonTargets(value) {
+  return String(value ?? '')
+    .split(/\n\s*---+\s*\n/g)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      const lines = block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+      const targetRole = lines.shift() ?? ''
+      let companyName = ''
+      if (lines[0]?.toLowerCase().startsWith('company:') || lines[0]?.startsWith('公司：') || lines[0]?.startsWith('公司:')) {
+        companyName = lines.shift().replace(/^company:/i, '').replace(/^公司[:：]/, '').trim()
+      }
+      return {
+        targetRole,
+        companyName,
+        jobDescription: lines.join('\n')
+      }
+    })
+    .filter((target) => target.targetRole && target.jobDescription)
+    .slice(0, 5)
 }
 
 function handleNewChat() {

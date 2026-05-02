@@ -52,6 +52,11 @@
         </div>
       </div>
 
+      <div v-if="hasWorkflowContext && sendMode === 'refine'" class="chat-refine-banner">
+        <strong>{{ t('supportChat.refineBannerTitle') }}</strong>
+        <p>{{ t('supportChat.refineBannerBody') }}</p>
+      </div>
+
       <div class="chat-shell__conversation">
         <div v-if="!hasMessages" class="chat-empty-state">
           <span class="chat-shell__label">{{ t('supportChat.conversationLabel') }}</span>
@@ -201,7 +206,7 @@ watch(
 .chat-workspace,.chat-shell{border:1px solid rgba(188,199,210,.84);background:rgba(255,255,255,.92);box-shadow:var(--shadow-md)}
 .chat-workspace{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.85fr);gap:var(--spacing-lg);padding:clamp(1.25rem,3vw,1.7rem);border-radius:var(--radius-xl);background:radial-gradient(circle at top right,rgba(20,124,131,.08),transparent 24%),radial-gradient(circle at bottom left,rgba(186,124,55,.08),transparent 20%),linear-gradient(180deg,rgba(255,255,255,.96),rgba(249,247,242,.96))}
 .chat-workspace__copy{display:grid;gap:10px}
-.chat-workspace__copy p,.chat-notice p,.chat-shell__hint,.chat-empty-state p,.chat-prefill p{color:var(--color-text-muted);line-height:1.58}
+.chat-workspace__copy p,.chat-notice p,.chat-shell__hint,.chat-empty-state p,.chat-prefill p,.chat-refine-banner p{color:var(--color-text-muted);line-height:1.58}
 .chat-workspace__eyebrow,.chat-shell__label{display:inline-flex;align-items:center;width:fit-content;min-height:28px;padding:.28rem .74rem;border-radius:var(--radius-full);background:rgba(16,38,61,.08);color:var(--color-primary);font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .chat-workspace__context,.chat-mode-switch,.chat-prefill,.chat-notice{display:flex;flex-wrap:wrap;gap:10px}
 .chat-workspace__context{align-content:start;justify-content:flex-end}
@@ -209,6 +214,8 @@ watch(
 .chat-pill--accent{background:rgba(186,124,55,.12);border-color:rgba(186,124,55,.28);color:var(--color-warning)}
 .chat-pill--muted{color:var(--color-text-light)}
 .chat-notice{display:grid;gap:.35rem;padding:1rem 1.05rem;border-radius:18px;border:1px solid rgba(188,199,210,.76);background:rgba(245,247,250,.84)}
+.chat-refine-banner{display:grid;gap:.35rem;padding:1rem 1.05rem;border-radius:18px;border:1px solid rgba(186,124,55,.28);background:rgba(186,124,55,.08)}
+.chat-refine-banner p{margin:0}
 .chat-shell{padding:clamp(1rem,2.4vw,1.25rem);border-radius:var(--radius-xl);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(247,245,240,.96))}
 .chat-shell__topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--spacing-md);align-items:start}
 .chat-mode-switch{padding:4px;border-radius:var(--radius-full);border:1px solid rgba(188,199,210,.78);background:rgba(244,241,234,.88)}

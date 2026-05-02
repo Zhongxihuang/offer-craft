@@ -19,11 +19,13 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Service
 public class CareerDocumentUploadService {
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "txt", "md");
+    private static final Pattern SAFE_WORKFLOW_ID = Pattern.compile("[A-Za-z0-9_-]{1,128}");
 
     private final Path uploadRoot;
     private final LocalizedMessages localizedMessages;
@@ -61,7 +63,7 @@ public class CareerDocumentUploadService {
                                                       SupportedLocale locale) {
         String originalFilename = normalizeFilename(file.getOriginalFilename());
         String extension = resolveExtension(originalFilename, fieldName, locale);
-        Path targetPath = buildTargetPath(workflowId, fieldName, extension);
+        Path targetPath = buildTargetPath(workflowId, fieldName, extension, locale);
 
         try {
             Files.createDirectories(targetPath.getParent());
@@ -108,11 +110,19 @@ public class CareerDocumentUploadService {
         return extension;
     }
 
-    private Path buildTargetPath(String workflowId, String fieldName, String extension) {
+    private Path buildTargetPath(String workflowId, String fieldName, String extension, SupportedLocale locale) {
+        if (workflowId == null || !SAFE_WORKFLOW_ID.matcher(workflowId).matches()) {
+            throw validationException(fieldName + "File", localizedMessages.get(locale, "errors.upload.invalidWorkflowId"));
+        }
+
         String baseName = fieldName
                 .replaceAll("([a-z])([A-Z])", "$1-$2")
                 .toLowerCase(Locale.ROOT);
-        return uploadRoot.resolve(workflowId).resolve(baseName + "." + extension);
+        Path targetPath = uploadRoot.resolve(workflowId).resolve(baseName + "." + extension).normalize();
+        if (!targetPath.startsWith(uploadRoot)) {
+            throw validationException(fieldName + "File", localizedMessages.get(locale, "errors.upload.invalidPath"));
+        }
+        return targetPath;
     }
 
     private String extractText(Path filePath, String extension) throws IOException {

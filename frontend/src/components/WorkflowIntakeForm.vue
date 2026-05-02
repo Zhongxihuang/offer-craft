@@ -1,5 +1,5 @@
 <template>
-  <form class="workflow-intake" @submit.prevent="handleSubmit">
+  <form ref="formRef" class="workflow-intake" @submit.prevent="handleSubmit">
     <section class="workflow-intake__hero">
       <div class="workflow-intake__hero-copy">
         <div class="workflow-intake__eyebrow">{{ t('intake.eyebrow') }}</div>
@@ -245,6 +245,98 @@
           </span>
         </label>
 
+        <label class="workflow-intake__toggle workflow-intake__toggle--compare">
+          <input
+            type="checkbox"
+            :checked="Boolean(form.compareMode)"
+            :disabled="hasSelectedFiles"
+            @change="updateField('compareMode', $event.target.checked)"
+          />
+          <span>
+            <strong>{{ t('intake.compareMode') }}</strong>
+            <small>{{ hasSelectedFiles ? t('intake.compareModeDisabled') : t('intake.compareModeHint') }}</small>
+          </span>
+        </label>
+
+        <section v-if="form.compareMode" class="workflow-intake__comparison">
+          <div class="workflow-intake__comparison-head">
+            <div>
+              <span class="workflow-intake__label">{{ t('intake.comparisonTargets') }}</span>
+              <small class="workflow-intake__hint">{{ t('intake.comparisonTargetsHint') }}</small>
+            </div>
+            <button
+              type="button"
+              class="workflow-intake__small-action"
+              :disabled="comparisonTargets.length >= 5"
+              @click="addComparisonTarget"
+            >
+              {{ t('intake.addComparisonTarget') }}
+            </button>
+          </div>
+
+          <article
+            v-for="(target, index) in comparisonTargets"
+            :key="target.key"
+            class="workflow-intake__comparison-card"
+          >
+            <div class="workflow-intake__comparison-card-head">
+              <strong>{{ t('intake.comparisonTargetLabel', { index: index + 1 }) }}</strong>
+              <button
+                v-if="comparisonTargets.length > 2"
+                type="button"
+                class="workflow-intake__upload-clear"
+                @click="removeComparisonTarget(index)"
+              >
+                {{ t('intake.removeComparisonTarget') }}
+              </button>
+            </div>
+
+            <label class="workflow-intake__field">
+              <span class="workflow-intake__label">{{ t('intake.targetRole') }}</span>
+              <input
+                type="text"
+                :value="target.targetRole"
+                :placeholder="t('intake.targetRolePlaceholder')"
+                @input="updateComparisonTarget(index, 'targetRole', $event.target.value)"
+              />
+            </label>
+
+            <label class="workflow-intake__field">
+              <span class="workflow-intake__label">{{ t('intake.companyName') }}</span>
+              <input
+                type="text"
+                :value="target.companyName"
+                :placeholder="t('intake.companyNamePlaceholder')"
+                @input="updateComparisonTarget(index, 'companyName', $event.target.value)"
+              />
+            </label>
+
+            <label class="workflow-intake__field">
+              <span class="workflow-intake__label">{{ t('intake.jobDescription') }}</span>
+              <textarea
+                :value="target.jobDescription"
+                rows="5"
+                :placeholder="t('intake.jobDescriptionPlaceholder')"
+                @input="updateComparisonTarget(index, 'jobDescription', $event.target.value)"
+              ></textarea>
+            </label>
+          </article>
+
+          <small class="workflow-intake__error" v-if="fieldError('comparisonTargets') || fieldError('comparisonTargetsText')">
+            {{ fieldError('comparisonTargets') || fieldError('comparisonTargetsText') }}
+          </small>
+        </section>
+
+        <div v-if="isSubmitting" class="workflow-intake__progress" role="status" aria-live="polite">
+          <strong>{{ t('intake.loadingTitle') }}</strong>
+          <ol>
+            <li>{{ t('intake.loadingParseJd') }}</li>
+            <li>{{ t('intake.loadingAnalyzeCandidate') }}</li>
+            <li>{{ t('intake.loadingRankGaps') }}</li>
+            <li>{{ t('intake.loadingPrepPlan') }}</li>
+          </ol>
+        </div>
+
         <button class="workflow-intake__submit" type="submit" :disabled="isSubmitting">
           <span v-if="isSubmitting" class="workflow-intake__spinner" aria-hidden="true"></span>
           {{ isSubmitting ? t('intake.submitting') : t('intake.submit') }}
@@ -259,7 +351,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -287,6 +379,7 @@ const jobDescriptionFileInput = ref(null)
 const candidateProfileFileInput = ref(null)
 const proofSection = ref(null)
 const workspaceSection = ref(null)
+const formRef = ref(null)
 
 const heroHighlights = computed(() => [
   { title: t('intake.proofTitle'), body: t('intake.proofBody') },
@@ -308,10 +401,27 @@ const form = computed(() => ({
   companyName: '',
   focusAreasText: '',
   includeCompanyResearch: false,
+  compareMode: false,
+  comparisonTargets: [
+    { targetRole: '', companyName: '', jobDescription: '' },
+    { targetRole: '', companyName: '', jobDescription: '' }
+  ],
+  comparisonTargetsText: '',
   jobDescriptionFile: null,
   candidateProfileFile: null,
   ...props.modelValue
 }))
+
+const hasSelectedFiles = computed(() => Boolean(selectedFilename(form.value.jobDescriptionFile) || selectedFilename(form.value.candidateProfileFile)))
+const comparisonTargets = computed(() => {
+  const targets = Array.isArray(form.value.comparisonTargets) ? form.value.comparisonTargets : []
+  return targets.map((target, index) => ({
+    key: target?.key || `comparison-target-${index}`,
+    targetRole: target?.targetRole || '',
+    companyName: target?.companyName || '',
+    jobDescription: target?.jobDescription || ''
+  }))
+})
 
 function getFieldError(field) {
   const errors = props.fieldErrors
@@ -341,6 +451,35 @@ function updateField(field, value) {
     ...form.value,
     [field]: value
   })
+}
+
+function updateComparisonTargets(nextTargets) {
+  updateField('comparisonTargets', nextTargets.map(({ key, ...target }) => target))
+}
+
+function updateComparisonTarget(index, field, value) {
+  const nextTargets = comparisonTargets.value.map((target, targetIndex) => {
+    if (targetIndex !== index) return target
+    return { ...target, [field]: value }
+  })
+  updateComparisonTargets(nextTargets)
+}
+
+function addComparisonTarget() {
+  if (comparisonTargets.value.length >= 5) {
+    return
+  }
+  updateComparisonTargets([
+    ...comparisonTargets.value,
+    { targetRole: '', companyName: '', jobDescription: '' }
+  ])
+}
+
+function removeComparisonTarget(index) {
+  if (comparisonTargets.value.length <= 2) {
+    return
+  }
+  updateComparisonTargets(comparisonTargets.value.filter((_, targetIndex) => targetIndex !== index))
 }
 
 function handleFileChange(field, event) {
@@ -377,6 +516,7 @@ function buildPayload() {
     jobDescription: normalizeText(form.value.jobDescription),
     candidateProfile: normalizeText(form.value.candidateProfile),
     includeCompanyResearch: Boolean(form.value.includeCompanyResearch),
+    comparisonTargets: comparisonTargets.value.map(({ key, ...target }) => target),
     jobDescriptionFile: form.value.jobDescriptionFile ?? null,
     candidateProfileFile: form.value.candidateProfileFile ?? null
   }
@@ -393,6 +533,16 @@ function scrollToWorkspace() {
 function scrollToProof() {
   proofSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
+
+watch(
+  () => props.fieldErrors,
+  async () => {
+    await nextTick()
+    const firstError = formRef.value?.querySelector('.workflow-intake__error')
+    firstError?.closest('label, section, article, div')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>
@@ -404,10 +554,45 @@ function scrollToProof() {
 .workflow-intake__hero,
 .workflow-intake__proof-card,
 .workflow-intake__document-card,
+.workflow-intake__comparison-card,
 .workflow-intake__workspace-sidebar {
   border: 1px solid rgba(188, 199, 210, 0.82);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: var(--shadow-md);
+}
+
+.workflow-intake__comparison {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.workflow-intake__comparison-head,
+.workflow-intake__comparison-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.workflow-intake__comparison-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 20px;
+}
+
+.workflow-intake__small-action {
+  min-height: 36px;
+  padding: 0.52rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: rgba(16, 38, 61, 0.08);
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.workflow-intake__small-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .workflow-intake__hero {
@@ -784,6 +969,30 @@ function scrollToProof() {
 .workflow-intake__submit:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: saturate(1.03);
+}
+
+.workflow-intake__progress {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(20, 124, 131, 0.22);
+  background: linear-gradient(135deg, rgba(20, 124, 131, 0.08), rgba(255, 255, 255, 0.88));
+  color: var(--color-text);
+}
+
+.workflow-intake__progress strong {
+  color: var(--color-primary);
+}
+
+.workflow-intake__progress ol {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .workflow-intake__spinner {

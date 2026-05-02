@@ -24,8 +24,8 @@ public class McpConfig {
         // transport with MCP
         McpTransport transport = new HttpMcpTransport.Builder()
                 .sseUrl("https://open.bigmodel.cn/api/mcp/web_search/sse?Authorization=" + apiKey)
-                .logRequests(true) // open logs
-                .logResponses(true)
+                .logRequests(false)
+                .logResponses(false)
                 .build();
         // create MCP client
         McpClient mcpClient = new DefaultMcpClient.Builder()

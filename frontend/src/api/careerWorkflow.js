@@ -26,7 +26,25 @@ export async function getCareerWorkflow(workflowId) {
     throw new Error(i18n.global.t('api.workflowIdRequired'))
   }
 
-  const { data } = await apiClient.get(`/career/workflow/${encodeURIComponent(normalizedWorkflowId)}`)
+  const { data } = await apiClient.get(
+    `/career/workflow/${encodeURIComponent(normalizedWorkflowId)}`,
+    {
+      headers: workflowAccessHeaders()
+    }
+  )
+  return data
+}
+
+export async function compareCareerWorkflows(payload) {
+  const { data } = await apiClient.post(
+    '/career/workflow/compare',
+    JSON.stringify(payload),
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
   return data
 }
 
@@ -42,7 +60,8 @@ export async function refineCareerWorkflow(workflowId, payload) {
     JSON.stringify(payload ?? {}),
     {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...workflowAccessHeaders()
       }
     }
   )
@@ -56,8 +75,27 @@ export async function getCareerWorkflowVersions(workflowId) {
     throw new Error(i18n.global.t('api.workflowIdRequired'))
   }
 
-  const { data } = await apiClient.get(`/career/workflow/${encodeURIComponent(normalizedWorkflowId)}/versions`)
+  const { data } = await apiClient.get(
+    `/career/workflow/${encodeURIComponent(normalizedWorkflowId)}/versions`,
+    {
+      headers: workflowAccessHeaders()
+    }
+  )
   return Array.isArray(data) ? data : []
+}
+
+function workflowAccessHeaders() {
+  const configuredToken = import.meta.env.VITE_WORKFLOW_ACCESS_TOKEN
+  const storedToken = typeof window !== 'undefined'
+    ? window.localStorage.getItem('careerAgent_workflowAccessToken')
+    : ''
+  const token = (configuredToken || storedToken || '').trim()
+
+  return token
+    ? {
+        'X-Workflow-Access-Token': token
+      }
+    : {}
 }
 
 export function normalizeApiError(error) {
@@ -117,9 +155,17 @@ function normalizeFieldErrors(data, t) {
 }
 
 function resolveMessage({ status, data, error, fieldErrors }) {
-  if (status === 404) {
-    return t('api.analysisExpired')
+  if (status === 400 && Object.keys(fieldErrors).length > 0) {
+    return t('api.highlightedFields')
   }
+
+  if (status === 400) return t('api.badRequest')
+  if (status === 403) return t('api.forbidden')
+  if (status === 404) return t('api.analysisExpired')
+  if (status === 413) return t('api.payloadTooLarge')
+  if (status === 415) return t('api.unsupportedMediaType')
+  if (status === 429) return t('api.rateLimited')
+  if (status >= 500) return t('api.serverError')
 
   if (typeof data?.message === 'string' && data.message.trim()) {
     return data.message.trim()
@@ -127,10 +173,6 @@ function resolveMessage({ status, data, error, fieldErrors }) {
 
   if (typeof data?.error === 'string' && data.error.trim()) {
     return data.error.trim()
-  }
-
-  if (status === 400 && Object.keys(fieldErrors).length > 0) {
-    return t('api.highlightedFields')
   }
 
   return error?.message || t('api.unexpected')

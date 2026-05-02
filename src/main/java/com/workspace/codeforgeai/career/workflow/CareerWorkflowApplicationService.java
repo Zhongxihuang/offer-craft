@@ -2,9 +2,14 @@ package com.workspace.codeforgeai.career.workflow;
 
 import com.workspace.codeforgeai.career.api.CareerWorkflowRefineRequest;
 import com.workspace.codeforgeai.career.api.CareerWorkflowRefineResponse;
+import com.workspace.codeforgeai.career.api.CareerWorkflowComparisonItem;
+import com.workspace.codeforgeai.career.api.CareerWorkflowComparisonRequest;
+import com.workspace.codeforgeai.career.api.CareerWorkflowComparisonResponse;
+import com.workspace.codeforgeai.career.api.CareerWorkflowComparisonTarget;
 import com.workspace.codeforgeai.career.api.CareerWorkflowRequest;
 import com.workspace.codeforgeai.career.api.CareerWorkflowResponse;
 import com.workspace.codeforgeai.career.api.CareerWorkflowUploadRequest;
+import com.workspace.codeforgeai.career.gap.GapItem;
 import com.workspace.codeforgeai.common.api.ApiErrorDetail;
 import com.workspace.codeforgeai.common.api.ApiValidationException;
 import com.workspace.codeforgeai.common.i18n.CareerLocaleResolver;
@@ -15,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -117,6 +124,47 @@ public class CareerWorkflowApplicationService {
         return runAndPersist(normalizedRequest, jobDescription, candidateProfile, versionInfo);
     }
 
+    public CareerWorkflowComparisonResponse compare(CareerWorkflowComparisonRequest request) {
+        String locale = careerLocaleResolver.resolveLanguageTag(request.locale());
+        SupportedLocale supportedLocale = SupportedLocale.from(locale);
+        List<CareerWorkflowComparisonTarget> targets = request.targets() == null ? List.of() : request.targets();
+
+        if (targets.size() < 2 || targets.size() > 5) {
+            throw new ApiValidationException(
+                    localizedMessages.get(supportedLocale, "errors.request.validation"),
+                    List.of(new ApiErrorDetail("targets", localizedMessages.get(supportedLocale, "errors.workflow.comparison.targets")))
+            );
+        }
+
+        List<CareerWorkflowComparisonItem> items = targets.stream()
+                .map(target -> {
+                    CareerWorkflowResponse response = analyze(new CareerWorkflowRequest(
+                        request.memoryId(),
+                        null,
+                        normalizeRequired(target.targetRole()),
+                        normalizeOptional(target.targetLevel()),
+                        normalizeOptional(target.companyName()),
+                        normalizeRequired(target.jobDescription()),
+                        normalizeRequired(request.candidateProfile()),
+                        request.normalizedFocusAreas(),
+                        request.includeCompanyResearch(),
+                        locale
+                    ));
+                    return comparisonItem(response, target, supportedLocale);
+                })
+                .sorted(Comparator.comparingInt(CareerWorkflowComparisonItem::priorityScore).reversed())
+                .toList();
+        String recommendedWorkflowId = items.isEmpty() ? null : items.getFirst().workflowId();
+
+        return new CareerWorkflowComparisonResponse(
+                Instant.now(),
+                supportedLocale.languageTag(),
+                recommendedWorkflowId,
+                comparisonSummary(items, supportedLocale),
+                items
+        );
+    }
+
     public CareerWorkflowRefineResponse refine(String workflowId, CareerWorkflowRefineRequest request) {
         StoredWorkflowContext storedWorkflowContext = workflowSessionStore.findStoredContext(workflowId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, localizedMessages.get("errors.workflow.notFound")));
@@ -170,6 +218,99 @@ public class CareerWorkflowApplicationService {
                 refinedResponse,
                 workflowSessionStore.listVersions(refinedResponse.workflowId())
         );
+    }
+
+    private CareerWorkflowComparisonItem comparisonItem(CareerWorkflowResponse response,
+                                                        CareerWorkflowComparisonTarget target,
+                                                        SupportedLocale locale) {
+        GapItem topGap = response.gapAnalysis() == null
+                || response.gapAnalysis().priorityGaps() == null
+                || response.gapAnalysis().priorityGaps().isEmpty()
+                ? null
+                : response.gapAnalysis().priorityGaps().getFirst();
+        String fitLevel = response.decisionSummary() == null ? null : response.decisionSummary().fitLevel();
+        String applyVerdict = response.decisionSummary() == null ? null : response.decisionSummary().applyVerdict();
+        String confidence = response.confidenceSummary() == null ? null : response.confidenceSummary().overallConfidence();
+        int score = priorityScore(fitLevel, applyVerdict, confidence, topGap);
+        String prepCost = prepCost(topGap, applyVerdict, locale);
+
+        return new CareerWorkflowComparisonItem(
+                response.workflowId(),
+                firstNonBlank(target.targetRole(), response.decisionSummary() == null ? null : response.decisionSummary().recommendedPositioning()),
+                normalizeOptional(target.companyName()),
+                fitLevel,
+                applyVerdict,
+                confidence,
+                topGap == null ? null : topGap.requirement(),
+                prepCost,
+                score,
+                response.decisionSummary() == null ? null : response.decisionSummary().applyVerdictReason()
+        );
+    }
+
+    private int priorityScore(String fitLevel, String applyVerdict, String confidence, GapItem topGap) {
+        int score = switch (normalizeKey(fitLevel)) {
+            case "STRONG_MATCH" -> 45;
+            case "COMPETITIVE_WITH_GAPS" -> 35;
+            case "STRETCH" -> 22;
+            case "LOW_MATCH", "NOT_RECOMMENDED" -> 8;
+            default -> 15;
+        };
+        score += switch (normalizeKey(applyVerdict)) {
+            case "APPLY_NOW" -> 30;
+            case "APPLY_WITH_REFRAMING" -> 22;
+            case "PREP_FIRST" -> 12;
+            case "REDIRECT" -> -10;
+            default -> 0;
+        };
+        score += switch (normalizeKey(confidence)) {
+            case "HIGH" -> 10;
+            case "MEDIUM" -> 5;
+            default -> 0;
+        };
+        if (topGap != null && "HIGH".equalsIgnoreCase(topGap.hiringImpact())) {
+            score -= 8;
+        }
+        return Math.max(0, score);
+    }
+
+    private String prepCost(GapItem topGap, String applyVerdict, SupportedLocale locale) {
+        if ("APPLY_NOW".equalsIgnoreCase(applyVerdict)) {
+            return locale.isChinese() ? "低：主要是表达打磨" : "Low: mostly narrative polish";
+        }
+        if (topGap == null || "LOW".equalsIgnoreCase(topGap.hiringImpact())) {
+            return locale.isChinese() ? "中：需要补一轮岗位化表达" : "Medium: needs one positioning pass";
+        }
+        if ("HIGH".equalsIgnoreCase(topGap.hiringImpact())) {
+            return locale.isChinese() ? "高：先补关键证据或集中准备" : "High: strengthen proof before investing";
+        }
+        return locale.isChinese() ? "中：建议先处理最高风险差距" : "Medium: address the highest-risk gap first";
+    }
+
+    private String comparisonSummary(List<CareerWorkflowComparisonItem> items, SupportedLocale locale) {
+        if (items.isEmpty()) {
+            return locale.isChinese() ? "当前没有可对比的岗位结果。" : "No comparable role results were returned.";
+        }
+
+        CareerWorkflowComparisonItem top = items.getFirst();
+        return locale.isChinese()
+                ? "优先考虑 %s；它当前的投递建议是 %s，准备成本为%s。".formatted(
+                firstNonBlank(top.targetRole(), "排名第一的岗位"),
+                firstNonBlank(top.applyVerdict(), "暂无"),
+                firstNonBlank(top.prepCost(), "暂无"))
+                : "Prioritize %s first; its current apply verdict is %s with %s prep cost.".formatted(
+                firstNonBlank(top.targetRole(), "the top-ranked role"),
+                firstNonBlank(top.applyVerdict(), "unknown"),
+                firstNonBlank(top.prepCost(), "unknown"));
+    }
+
+    private String normalizeKey(String value) {
+        return value == null ? "" : value.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    private String firstNonBlank(String primary, String fallback) {
+        String normalizedPrimary = normalizeOptional(primary);
+        return normalizedPrimary == null ? normalizeOptional(fallback) : normalizedPrimary;
     }
 
     public List<WorkflowVersionSummary> listVersions(String workflowId) {

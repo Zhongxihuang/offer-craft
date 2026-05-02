@@ -43,6 +43,20 @@ class CareerDocumentUploadServiceTest {
     }
 
     @Test
+    void resolveDocumentRejectsMissingTextAndFileSources() {
+        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+
+        ApiValidationException exception = assertThrows(
+                ApiValidationException.class,
+                () -> service.resolveDocument("workflow-123", "candidateProfile", null, "   ", "en")
+        );
+
+        assertEquals("Upload request validation failed.", exception.getMessage());
+        assertEquals("candidateProfile", exception.details().getFirst().field());
+        assertTrue(exception.details().getFirst().message().contains("Provide pasted text"));
+    }
+
+    @Test
     void resolveDocumentReadsUtf8TextFiles() {
         CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
         MockMultipartFile file = new MockMultipartFile(
@@ -97,6 +111,26 @@ class CareerDocumentUploadServiceTest {
     }
 
     @Test
+    void resolveDocumentRejectsUnsafeWorkflowIdsBeforeSavingFiles() {
+        CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
+        MockMultipartFile file = new MockMultipartFile(
+                "jobDescriptionFile",
+                "job-description.txt",
+                "text/plain",
+                "Enterprise AI PM role".getBytes(StandardCharsets.UTF_8)
+        );
+
+        ApiValidationException exception = assertThrows(
+                ApiValidationException.class,
+                () -> service.resolveDocument("../outside", "jobDescription", file, null, "en")
+        );
+
+        assertEquals("Upload request validation failed.", exception.getMessage());
+        assertEquals("jobDescriptionFile", exception.details().getFirst().field());
+        assertTrue(exception.details().getFirst().message().contains("workflowId"));
+    }
+
+    @Test
     void resolveDocumentRejectsBlankPdfTextWithoutOcrSupport() throws Exception {
         CareerDocumentUploadService service = new CareerDocumentUploadService(tempDir.toString(), localizedMessages());
         MockMultipartFile file = new MockMultipartFile(
@@ -147,6 +181,8 @@ class CareerDocumentUploadServiceTest {
                 .thenAnswer(invocation -> switch ((String) invocation.getArgument(1)) {
                     case "errors.upload.provideTextOrFile" -> "Provide pasted text or upload a .pdf, .txt, or .md file.";
                     case "errors.upload.unsupportedFileType" -> "Upload a .pdf, .txt, or .md file.";
+                    case "errors.upload.invalidWorkflowId" -> "workflowId may only contain letters, numbers, underscores, and hyphens, and must be at most 128 characters.";
+                    case "errors.upload.invalidPath" -> "The upload storage path is invalid.";
                     case "errors.upload.unreadablePdf" -> "The uploaded PDF did not contain extractable text. OCR is not supported in v1.";
                     case "errors.upload.unreadableText" -> "The uploaded file did not contain readable text.";
                     case "errors.upload.storeFailed" -> "Failed to store or parse the uploaded file.";

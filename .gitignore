@@ -3,6 +3,7 @@ HELP.md
 /data/
 /frontend/dist/
 /frontend/node_modules/
+/.m2/
 
 target/
 .mvn/wrapper/maven-wrapper.jar

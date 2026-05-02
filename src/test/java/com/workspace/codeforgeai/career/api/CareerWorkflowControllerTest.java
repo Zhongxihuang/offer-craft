@@ -14,6 +14,7 @@ import com.workspace.codeforgeai.career.workflow.EvidenceSourceType;
 import com.workspace.codeforgeai.career.workflow.ActionPlanStep;
 import com.workspace.codeforgeai.career.workflow.StageConfidence;
 import com.workspace.codeforgeai.career.workflow.WorkflowSessionStore;
+import com.workspace.codeforgeai.career.workflow.WorkflowAccessGuard;
 import com.workspace.codeforgeai.career.workflow.WorkflowVersionInfo;
 import com.workspace.codeforgeai.career.workflow.WorkflowVersionSummary;
 import com.workspace.codeforgeai.common.api.ApiErrorDetail;
@@ -37,6 +38,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -60,6 +62,9 @@ class CareerWorkflowControllerTest {
     private WorkflowSessionStore workflowSessionStore;
 
     @MockBean
+    private WorkflowAccessGuard workflowAccessGuard;
+
+    @MockBean
     private LocalizedMessages localizedMessages;
 
     @org.junit.jupiter.api.BeforeEach
@@ -69,6 +74,7 @@ class CareerWorkflowControllerTest {
             case "errors.request.body.invalid" -> "Request body is invalid or malformed JSON.";
             case "errors.request.unexpected" -> "An unexpected error occurred.";
             case "errors.request.invalidValue" -> "Invalid value.";
+            case "errors.request.forbidden" -> "A valid workflow access token is required in this environment.";
             case "errors.workflow.notFound" -> "Workflow not found.";
             default -> (String) invocation.getArgument(0);
         });
@@ -145,6 +151,40 @@ class CareerWorkflowControllerTest {
     }
 
     @Test
+    void getWorkflowReturnsForbiddenWhenAccessGuardRejectsRequest() throws Exception {
+        doThrow(new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "A valid workflow access token is required in this environment."
+        )).when(workflowAccessGuard).verifyReadAccess(null);
+
+        mockMvc.perform(get("/career/workflow/workflow-123"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.message").value("A valid workflow access token is required in this environment."));
+    }
+
+    @Test
+    void refineReturnsForbiddenWhenAccessGuardRejectsRequest() throws Exception {
+        doThrow(new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "A valid workflow access token is required in this environment."
+        )).when(workflowAccessGuard).verifyReadAccess(null);
+
+        mockMvc.perform(post("/career/workflow/workflow-123/refine")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "locale": "en",
+                                  "action": "APPEND_CANDIDATE_EVIDENCE",
+                                  "message": "Add AI governance evidence."
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.message").value("A valid workflow access token is required in this environment."));
+    }
+
+    @Test
     void analyzeUploadReturnsWorkflowArtifactsForValidMultipartRequest() throws Exception {
         when(careerWorkflowApplicationService.analyzeUpload(any(CareerWorkflowUploadRequest.class))).thenReturn(sampleResponse());
 
@@ -163,6 +203,75 @@ class CareerWorkflowControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.workflowId").value("workflow-123"))
                 .andExpect(jsonPath("$.decisionSummary.fitLevel").value("COMPETITIVE_WITH_GAPS"));
+    }
+
+    @Test
+    void compareReturnsRankedRoleResults() throws Exception {
+        when(careerWorkflowApplicationService.compare(any(CareerWorkflowComparisonRequest.class)))
+                .thenReturn(new CareerWorkflowComparisonResponse(
+                        Instant.parse("2026-04-11T12:10:00Z"),
+                        "en",
+                        "workflow-123",
+                        "Prioritize Backend Engineer first.",
+                        List.of(new CareerWorkflowComparisonItem(
+                                "workflow-123",
+                                "Backend Engineer",
+                                "Acme",
+                                "COMPETITIVE_WITH_GAPS",
+                                "APPLY_WITH_REFRAMING",
+                                "MEDIUM",
+                                "Distributed systems scale",
+                                "Medium: needs one positioning pass",
+                                62,
+                                "Apply with tailored positioning."
+                        ))
+                ));
+
+        String requestBody = """
+                {
+                  "candidateProfile": "Candidate has Java and Spring Boot experience shipping APIs.",
+                  "targets": [
+                    {
+                      "targetRole": "Backend Engineer",
+                      "companyName": "Acme",
+                      "jobDescription": "Need a Java backend engineer with Spring Boot."
+                    },
+                    {
+                      "targetRole": "Platform Engineer",
+                      "companyName": "Beta",
+                      "jobDescription": "Need platform ownership and distributed systems depth."
+                    }
+                  ]
+                }
+                """;
+
+        mockMvc.perform(post("/career/workflow/compare")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recommendedWorkflowId").value("workflow-123"))
+                .andExpect(jsonPath("$.items[0].priorityScore").value(62));
+    }
+
+    @Test
+    void compareReturnsBadRequestWhenTooFewTargetsAreProvided() throws Exception {
+        String requestBody = """
+                {
+                  "candidateProfile": "Candidate has Java and Spring Boot experience shipping APIs.",
+                  "targets": [
+                    {
+                      "targetRole": "Backend Engineer",
+                      "jobDescription": "Need a Java backend engineer with Spring Boot."
+                    }
+                  ]
+                }
+                """;
+
+        mockMvc.perform(post("/career/workflow/compare")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details[*].field", hasItem("targets")));
     }
 
     @Test

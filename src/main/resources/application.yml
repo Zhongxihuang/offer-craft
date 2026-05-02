@@ -13,11 +13,11 @@ spring:
     password:
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
     open-in-view: false
   servlet:
     multipart:
@@ -46,8 +46,13 @@ bigmodel:
   api-key: ${BIGMODEL_API_KEY:}
 
 career:
+  web:
+    allowed-origins: ${CAREER_WEB_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
   ai:
     mode: provider
   workflow:
+    access:
+      require-token: ${CAREER_WORKFLOW_ACCESS_REQUIRE_TOKEN:true}
+      read-token: ${CAREER_WORKFLOW_READ_TOKEN:}
     storage:
       upload-root: ./data/uploads
